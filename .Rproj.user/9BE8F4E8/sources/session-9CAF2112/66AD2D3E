@@ -3,7 +3,7 @@
     "path": "~/egoOptim/egoOptim/R/build.R",
     "project_path": "R/build.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "2579071730",
     "contents": "",
     "dirty": false,
     "created": 1662148037774.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "76,51",
-        "scrollLine": "64"
+        "cursorPosition": "77,0",
+        "scrollLine": "51"
     },
     "folds": "",
-    "lastKnownWriteTime": 1662045022,
+    "lastKnownWriteTime": 1662157120,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1662045022,
+    "last_content_update": 1662157120589,
     "read_only": false,
     "read_only_alternatives": []
 }
