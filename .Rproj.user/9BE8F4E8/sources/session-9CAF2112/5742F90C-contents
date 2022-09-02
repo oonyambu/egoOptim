@@ -1,0 +1,98 @@
+#' Optimize fun
+#'
+#' Uses EGO algotiyhm to optimize any given function.
+#'
+#' @author BLANK
+#'
+#' @export
+optimize_fun <- function(FUN, lower, upper,
+                         n = 5, nsteps = 2, top = .15,
+                         ntimes = 5){
+  #Initial Domain
+  init_lower <- lower
+  init_upper <- upper
+
+  # Design points
+  p <- length(lower)
+  design <- lhs::randomLHS(n, p)
+
+  # Rescale the design to the entire domain
+  design <- mapply(scales::rescale, unname(data.frame(design)),
+                   to = rbind.data.frame(lower, upper), from = list(c(0, 1)))
+  y <- apply(design, 1, FUN)
+
+
+  # Plot design points
+  if(p == 2){
+    grid_x <- seq(lower[1], upper[1], length = 200)
+    grid_y <- seq(lower[2], upper[2], length = 200)
+    z <- matrix(apply(expand.grid(grid_x, grid_y), 1, FUN), 200)
+
+    contour(grid_x, grid_y, z)
+    points(cbind(design, y), col=4, pch=20)
+  }
+
+  all_points <- cbind(design, y)
+  model1 <- DiceKriging::km(design = design,
+                            response = y, control = list(trace=0))
+  # REPEAT:
+  for(i in seq(ntimes)){
+
+    ## Obtain the top_n % of  all_points
+    # Number of rows/points to choose - choose at least p+2 points.
+    n_best <- max(ceiling(top * nrow(all_points)), p+2)
+
+    best <- all_points[head(order(all_points[,p+1]), n_best), ]
+
+    # Determine minimum and maximum x, y : ROI
+    lower <- apply(best[,-p-1], 2, min)
+    upper <- apply(best[,-p-1], 2, max)
+
+    # Center the ROI at the best position
+    dist <- (upper - lower)/2
+    center <- best[1,-p-1]
+    lower <- pmax(center - dist, init_lower)
+    upper <- pmin(center + dist, init_upper)
+
+
+
+    # TREGO to obtain new points that have highest EI
+
+    oego <- DiceOptim::TREGO.nsteps(model1, FUN, nsteps = nsteps,
+                                    lower=lower, upper = upper, trace = -1)
+    model1 <- oego$lastmodel
+
+
+    # rbind the new points to the previous points.
+    new_points <- cbind(unname(oego$par), oego$value)
+    all_points <- rbind(all_points, new_points)
+
+    # Include the rectangle to visualize the ROI
+    if(p==2) {
+      do.call(rect, as.list(c(lower, upper)))
+      ## Plot new points
+      points(new_points, col=2, pch=17)
+      Sys.sleep(1)
+    }
+
+  }
+  structure(list(all_points = all_points, best = best[1,],
+                 init_nobs = n,
+       nobs = nrow(all_points), fn_dim = p, n_iter = ntimes, nsteps = nsteps),
+       class = 'egoOptim')
+}
+
+print.egoOptim <- function(x, ...){
+  cat('Global Minimum:\t\t   Total Observations: ', x$nobs,
+  '\n  x* = (', toString(round(x$best[-x$fn_dim-1], 5)),
+    ')   fn dim: ', x$fn_dim,
+     '; nsteps: ',
+  x$nsteps,
+  '; init nobs: ', x$init_nobs,
+  '\n  f(x*) = ', x$best[x$fn_dim + 1], '\titerations: ',
+  x$n_iter, '\n', sep="")
+  invisible(x)
+
+}
+a<-optimize_fun(braninsc, c(0,0), c(1,1))
+a

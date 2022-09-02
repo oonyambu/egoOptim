@@ -32,29 +32,17 @@ optimize_fun <- function(FUN, lower, upper,
     points(cbind(design, y), col=4, pch=20)
   }
 
-  prev_points <- cbind(design, y)
+  all_points <- cbind(design, y)
   model1 <- DiceKriging::km(design = design,
                             response = y, control = list(trace=0))
   # REPEAT:
   for(i in seq(ntimes)){
 
-    oego <- DiceOptim::TREGO.nsteps(model1, FUN, nsteps = nsteps,
-                                    lower=lower, upper = upper, trace = -1)
-    model1 <- oego$lastmodel
-
-    # New Points from the TREGO model
-    new_x <- unname(oego$par)
-    new_y <- apply(new_x, 1, FUN)
-
-    # all points obtained so far:
-    prev_points <- rbind(prev_points, cbind(new_x, new_y))
-
-    ## Obtain the top_n % of  new points + previous_points
-
+    ## Obtain the top_n % of  all_points
     # Number of rows/points to choose - choose at least p+2 points.
-    n_best <- max(ceiling(top * nrow(prev_points)), p+2)
+    n_best <- max(ceiling(top * nrow(all_points)), p+2)
 
-    best <- prev_points[head(order(prev_points[,p+1]), n_best), ]
+    best <- all_points[head(order(all_points[,p+1]), n_best), ]
 
     # Determine minimum and maximum x, y : ROI
     lower <- apply(best[,-p-1], 2, min)
@@ -66,14 +54,45 @@ optimize_fun <- function(FUN, lower, upper,
     lower <- pmax(center - dist, init_lower)
     upper <- pmin(center + dist, init_upper)
 
+
+
+    # TREGO to obtain new points that have highest EI
+
+    oego <- DiceOptim::TREGO.nsteps(model1, FUN, nsteps = nsteps,
+                                    lower=lower, upper = upper, trace = -1)
+    model1 <- oego$lastmodel
+
+
+    # rbind the new points to the previous points.
+    new_points <- cbind(unname(oego$par), oego$value)
+    all_points <- rbind(all_points, new_points)
+
     # Include the rectangle to visualize the ROI
     if(p==2) {
       do.call(rect, as.list(c(lower, upper)))
       ## Plot new points
-      points(cbind(new_x, new_y), col=2, pch=17)
+      points(new_points, col=2, pch=17)
       Sys.sleep(1)
     }
+
   }
-  list(all_points = prev_points, best = best[1,])
+  structure(list(all_points = all_points, best = best[1,],
+                 init_nobs = n,
+       nobs = nrow(all_points), fn_dim = p, n_iter = ntimes, nsteps = nsteps),
+       class = 'egoOptim')
 }
 
+print.egoOptim <- function(x, ...){
+  cat('Global Minimum:\t\t   Total Observations: ', x$nobs,
+  '\n  x* = (', toString(round(x$best[-x$fn_dim-1], 5)),
+    ')   fn dim: ', x$fn_dim,
+     '; nsteps: ',
+  x$nsteps,
+  '; init nobs: ', x$init_nobs,
+  '\n  f(x*) = ', x$best[x$fn_dim + 1], '\titerations: ',
+  x$n_iter, '\n', sep="")
+  invisible(x)
+
+}
+a<-optimize_fun(braninsc, c(0,0), c(1,1))
+a

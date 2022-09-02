@@ -1,26 +1,26 @@
 {
-    "id": "66AD2D3E",
-    "path": "~/egoOptim/egoOptim/R/build.R",
-    "project_path": "R/build.R",
+    "id": "5742F90C",
+    "path": "~/egoOptim/egoOptim/R/optimize_fun.R",
+    "project_path": "R/optimize_fun.R",
     "type": "r_source",
-    "hash": "998476405",
+    "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1662148037774.0,
+    "created": 1662157514031.0,
     "source_on_save": false,
     "relative_order": 2,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "26,0",
-        "scrollLine": "14"
+        "cursorPosition": "79,31",
+        "scrollLine": "70"
     },
     "folds": "",
-    "lastKnownWriteTime": 1662157295,
+    "lastKnownWriteTime": 1662160064,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1662157295675,
+    "last_content_update": 1662160064762,
     "read_only": false,
     "read_only_alternatives": []
 }
