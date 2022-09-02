@@ -76,11 +76,12 @@ optimize_fun <- function(FUN, lower, upper,
     }
 
   }
-  structure(list(all_points = all_points, best = best[1,],
+  print.egoOptim(structure(list(all_points = all_points, best = best[1,],
                  init_nobs = n,
        nobs = nrow(all_points), fn_dim = p, n_iter = ntimes, nsteps = nsteps),
-       class = 'egoOptim')
+       class = 'egoOptim'))
 }
+
 
 print.egoOptim <- function(x, ...){
   cat('Global Minimum:\t\t   Total Observations: ', x$nobs,
@@ -94,5 +95,4 @@ print.egoOptim <- function(x, ...){
   invisible(x)
 
 }
-a<-optimize_fun(braninsc, c(0,0), c(1,1))
-a
+
