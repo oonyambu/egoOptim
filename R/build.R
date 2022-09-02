@@ -1,4 +1,4 @@
-##exportPattern("^[[:alpha:]]+")
+#' File to obtain all the functions and create the roxygen comments
 
 source_fun <- function(link){
   lns <- readLines(link, warn = FALSE, encoding = 'UTF-8')
@@ -74,4 +74,5 @@ build <- function(page, nm, link){
   f
 }
 
+# The code to obtain all functions into the package
 #invisible(do.call(Map, c(build, get_functions())))
