@@ -25,7 +25,7 @@ get_functions <- function(){
     html_attr('href') %>%
     paste0(link, x = .)
 
-    lapply(hrefs, \(x)read_html(x) %>%
+    lapply(hrefs, function(x)read_html(x) %>%
              html_elements('#codes a[href*="r.html"]')%>%
              html_attr('href'))%>%
     setNames(hrefs)%>%
