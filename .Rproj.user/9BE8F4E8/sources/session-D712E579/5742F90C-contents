@@ -45,8 +45,8 @@ optimize_fun <- function(FUN, lower, upper,
     best <- all_points[head(order(all_points[,p+1]), n_best), ]
 
     # Determine minimum and maximum x, y : ROI
-    lower <- apply(best[,-p-1], 2, min)
-    upper <- apply(best[,-p-1], 2, max)
+    lower <- apply(best[,-p-1, drop = FALSE], 2, min)
+    upper <- apply(best[,-p-1, drop = FALSE], 2, max)
 
     # Center the ROI at the best position
     dist <- (upper - lower)/2
