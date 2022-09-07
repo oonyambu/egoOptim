@@ -76,13 +76,16 @@ optimize_fun <- function(FUN, lower, upper,
     }
 
   }
-  print.egoOptim(structure(list(all_points = all_points, best = best[1,],
+  structure(list(all_points = all_points, best = best[1,],
                  init_nobs = n,
        nobs = nrow(all_points), fn_dim = p, n_iter = ntimes, nsteps = nsteps),
-       class = 'egoOptim'))
+       class = 'egoOptim')
 }
 
-
+#' print.egoOptim
+#' print an egoOptim object
+#' @param x an object of class egoOptim
+#' @export
 print.egoOptim <- function(x, ...){
   cat('Global Minimum:\t\t   Total Observations: ', x$nobs,
   '\n  x* = (', toString(round(x$best[-x$fn_dim-1], 5)),

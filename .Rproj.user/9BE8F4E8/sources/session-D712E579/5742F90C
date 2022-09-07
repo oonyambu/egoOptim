@@ -3,7 +3,7 @@
     "path": "~/egoOptim/egoOptim/R/optimize_fun.R",
     "project_path": "R/optimize_fun.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "2020516831",
     "contents": "",
     "dirty": false,
     "created": 1662157514031.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "85,0",
-        "scrollLine": "69"
+        "cursorPosition": "87,10",
+        "scrollLine": "77"
     },
     "folds": "",
-    "lastKnownWriteTime": 1662160529,
+    "lastKnownWriteTime": 1662566578,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1662160529648,
+    "last_content_update": 1662566578617,
     "read_only": false,
     "read_only_alternatives": []
 }
