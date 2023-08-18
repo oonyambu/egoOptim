@@ -203,15 +203,43 @@ continue <- function(object, new_budget){
 
 
 
-c("drop", "easom", "egg", "forretal08", "forretal08lc", "get_functions",
-  "goldpr", "goldprsc", "griewank", "grlee12", "hart3", "hart4",
-  "hart6", "hart6sc", "hello", "holder", "langer", "levy", "levy13",
-  "library.dynam", "library.dynam.unload", "matya", "mccorm", "method_compare",
-  "michal", "optimize_fun", "perm0db", "permdb", "plotComparison",
-  "powell", "powersum", "print.egoOptim", "rastr", "rosen", "rosensc",
-  "rothyp", "schaffer2", "schaffer4", "schwef", "shekel", "shubert",
-  "source_fun", "spheref", "spherefmod", "stybtang", "sumpow",
-  "sumsqu", "system.file", "trid", "zakharov")
+my_contour <- function(x1, x2, Z, xlab = NULL,
+                       ylab = NULL, title = NULL,
+                       background = "white", title.adjust = 0.5,
+                       subtitle = "it1",nlevels=100, col='blue', ...){
 
 
+  par(bg = background,
+      adj=0.5,
+      tck = -0.02,
+    #mgp = c(1.5, 0.4, 0), tcl = -0.25,
+    ## Shrink the tick labels.
+    cex.axis = 0.8,
+    ## Set the axis label color
+    col.lab = "black",
+        ## Adjust the margin:  bottom, left, top, right
+    mar = c(2, 2.5, 2, 1.2)-c(0,0,is.null(title), 0),
+    bty = "n",
+    mgp = c(1, 0.2, 0))
 
+  if(is.null(xlab)) xlab <- deparse1(substitute(x1))
+  if(is.null(ylab)) ylab <- deparse1(substitute(x2))
+  contour(x1, x2, Z, xaxt = "n", yaxt = "n")
+
+  rect(par("usr")[1], par("usr")[3],
+       par("usr")[2], par("usr")[4],
+       col = "#ebebeb", border = background)
+
+  grid(nx = 5, ny = 5,
+       lty = 1,      # Grid line type
+       col = "white", # Grid line color
+       lwd = 2)      # Grid line width
+  contour(x1, x2, Z, add = TRUE, nlevels = nlevels,...)
+
+  #box("plot", bty = "l", lwd = 2)
+  axis(side = 1, lwd = 0, lwd.ticks = 1, mgp=c(1, 0.2, 0))
+  axis(side = 2, lwd = 0, lwd.ticks = 1, las = 2, mgp=c(1.5, 0.4, 0))
+  title(main = title, xlab = xlab, ylab=ylab,
+        adj = title.adjust, sub = subtitle)
+
+}
