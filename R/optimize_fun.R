@@ -1,101 +1,147 @@
 #' Optimize fun
 #'
-#' Uses EGO algotiyhm to optimize any given function.
+#' Uses EGO algorithm to optimize any given function.
 #'
 #' @author BLANK
 #'
 #' @export
-optimize_fun <- function(FUN, lower, upper,
-                         n = 5, nsteps = 2, top = .15,
-                         ntimes = 5){
-  #Initial Domain
+optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL,
+                         tolerr = 1e-4, maxit = 20,
+                         nsteps = 5, rho = 0.3, trueglobal = NULL, maximize = FALSE,
+                         do_maxit = FALSE, counter = 3, dimplot = 1:2, budget = NULL,
+                         basicEGO = FALSE, n = 5*length(lower), plot = FALSE, trace = 1,
+                         method = c('fastEGO','TREGO'),
+                         increament_rate = 0.1,
+                         seed = NULL){
+
+  # Rewrite the function in case of maximization:
+  .fun <-  function(x) (-1)^(maximize)*fun(x, ...)
+  if(!is.null(trueglobal)) trueglobal <- (-1)^maximize*trueglobal
+  # Initialization
+  count <- 0
+  signifs <- ceiling(1-log10(tolerr))
   init_lower <- lower
   init_upper <- upper
+  method <- getFromNamespace(paste0(method[1], ".nsteps"), "DiceOptim")
 
-  # Design points
+
+  # Generate scaled X matrix and Y values
   p <- length(lower)
-  design <- lhs::randomLHS(n, p)
 
-  # Rescale the design to the entire domain
-  design <- mapply(scales::rescale, unname(data.frame(design)),
-                   to = rbind.data.frame(lower, upper), from = list(c(0, 1)))
-  y <- apply(design, 1, FUN)
-
-
-  # Plot design points
-  if(p == 2){
-    grid_x <- seq(lower[1], upper[1], length = 200)
-    grid_y <- seq(lower[2], upper[2], length = 200)
-    z <- matrix(apply(expand.grid(grid_x, grid_y), 1, FUN), 200)
-
-    contour(grid_x, grid_y, z)
-    points(cbind(design, y), col=4, pch=20)
+  if(!is.null(budget)) {
+    add <- budget - n
+    n <- n + add %% nsteps
+    maxit <- add %/% nsteps
+  }
+  errors <- numeric(maxit)
+  set.seed(seed)
+  if(is.null(X)) {
+    X <- lhs::maximinLHS(n, p)
+    X <- mapply(scales::rescale, data.frame(X),data.frame(rbind(lower, upper)))
+    if(!is.null(names(lower))) colnames(X) <- names(lower)
+    y <- apply(X, 1, .fun) #
   }
 
-  all_points <- cbind(design, y)
-  model1 <- DiceKriging::km(design = design,
-                            response = y, control = list(trace=0))
-  # REPEAT:
-  for(i in seq(ntimes)){
 
-    ## Obtain the top_n % of  all_points
-    # Number of rows/points to choose - choose at least p+2 points.
-    n_best <- max(ceiling(top * nrow(all_points)), p+2)
-
-    best <- all_points[head(order(all_points[,p+1]), n_best), ]
-
-    # Determine minimum and maximum x, y : ROI
-    lower <- apply(best[,-p-1, drop = FALSE], 2, min)
-    upper <- apply(best[,-p-1, drop = FALSE], 2, max)
-
-    # Center the ROI at the best position
-    dist <- (upper - lower)/2
-    center <- best[1,-p-1]
-    lower <- pmax(center - dist, init_lower)
-    upper <- pmin(center + dist, init_upper)
+  # Starting Optimal value Inf.-- Enable to compute error.
+  optimal <- min(y)
+  error_init <- if(!is.null(trueglobal)) {
+    maximize + optimal - trueglobal*(!maximize)
+  }else NULL
+  # Run kriging model
+  model <- DiceKriging::km(design = X, response = y, control = list(trace = 0))
 
 
+  #plot the first 2 dimensions holding the other dimensions at midpoint:
+  if(plot){
+    use_colors <- c("red", "blue", "green","yellow", "orange","purple",
+                    rainbow(maxit))
+    if(length(dimplot)!=2) stop("you can only plot 2d", call. = FALSE)
+    col_order <- order(c(dimplot, setdiff(seq_len(p), dimplot)))
 
-    # TREGO to obtain new points that have highest EI
+    rem <- if (p>2) tail((lower + upper)/2, -2) else NULL
+    x1 <- seq(lower[dimplot[1]], upper[dimplot[1]], length = 50)
+    x2 <- seq(lower[dimplot[2]], upper[dimplot[2]], length = 50)
+    Z <- outer(x1, x2, Vectorize(\(x, y).fun(c(x, y, rem)[col_order])))
+    my_contour(x1, x2, Z)
+    points(cbind(X, y), pch=16, col=1)
+    rect(lower[1], lower[2], upper[1], upper[2], border = 'black')
+  }
 
-    oego <- DiceOptim::TREGO.nsteps(model1, FUN, nsteps = nsteps,
-                                    lower=lower, upper = upper, trace = -1)
-    model1 <- oego$lastmodel
+  for(i in seq_len(maxit)){
 
+    #Fit the EGO
+    mod1 <- method(model,.fun, nsteps,lower,upper,trace = FALSE)
+    model <- mod1$lastmodel
 
-    # rbind the new points to the previous points.
-    new_points <- cbind(unname(oego$par), oego$value)
-    all_points <- rbind(all_points, new_points)
+    # Obtain the center and ROI
+    o <- order(model@y)
+    center <- model@X[o[1], ]
 
-    # Include the rectangle to visualize the ROI
-    if(p==2) {
-      do.call(rect, as.list(c(lower, upper)))
-      ## Plot new points
-      points(new_points, col=2, pch=17)
-      Sys.sleep(1)
+    if(!basicEGO) {
+      top_n <- ceiling(rho * nrow(model@X))
+      dist <- diff(apply( model@X[o[seq_len(top_n)], ], 2, range))/2
+      lower <- c(pmax(center - dist, init_lower))
+      upper <- c(pmin(center + dist, init_upper))
     }
+    #Plot the new ROI and the added points
+    if(plot){
+      rect(lower[dimplot[1]], lower[dimplot[2]],
+           upper[dimplot[1]], upper[dimplot[2]], border = use_colors[i])
+
+      points(mod1$par[,dimplot, drop = FALSE], col=use_colors[i], pch=16)
+    }
+    # Compute the error and set the previous optimal to be the current optimal
+    err <- optimal - model@y[o[1]]
+    optimal <- model@y[o[1]]
+
+    if(trace)
+      cat(sprintf(sprintf("it: %02d\tf(x*): %%.%df\terrr: %%.%df\t", i, signifs, signifs),
+                  optimal*(-1)^(maximize),err))
+
+    if(p<6 & trace){
+      fmt <- sprintf("[%s]\tcount:%02i\t", trimws(strrep("%.4f, ", p),'r',", "), count)
+      cat(do.call(sprintf, c(fmt, as.list(center))))
+    }
+    if(!is.null(trueglobal)) {
+      trueERR <- optimal - trueglobal
+      errors[i] <- trueERR
+      if(trace)cat(sprintf(sprintf("trueERR: %%.%df", signifs), trueERR))
+      if(trueERR < tolerr &!do_maxit) break
+    }
+    if(trace)cat("\n")
+
+
+    if(err < tolerr && !basicEGO) {
+      if(!is.null(trueglobal) && (trueERR< tolerr) &!do_maxit) break
+      lower <- c(pmax(center - (1+increament_rate)^(1/p)*dist, init_lower)) #pmax(init_lower, lower - 1.5^(1/p)*dist)
+      upper <- c(pmin(center + (1+increament_rate)^(1/p)*dist, init_upper))#init_upper #pmin(init_upper, upper + 3*dist)
+      count <- count + 1
+    }
+    if(count >= counter && !do_maxit) break
+    #cat("lower:[", lower,"] upper:[", upper,"]\n")
 
   }
-  structure(list(all_points = all_points, best = best[1,],
-                 init_nobs = n,
-       nobs = nrow(all_points), fn_dim = p, n_iter = ntimes, nsteps = nsteps),
-       class = 'egoOptim')
+  structure(list(par = unname(center),
+                 value = optimal * (-1)^(maximize),
+                 model = model,
+                 env = environment(),
+                 errors = c(error_init, errors)),
+            class = 'egoOptim')
 }
 
 #' print.egoOptim
 #' print an egoOptim object
 #' @param x an object of class egoOptim
 #' @export
-print.egoOptim <- function(x, ...){
-  cat('Global Minimum:\t\t   Total Observations: ', x$nobs,
-  '\n  x* = (', toString(round(x$best[-x$fn_dim-1], 5)),
-    ')   fn dim: ', x$fn_dim,
-     '; nsteps: ',
-  x$nsteps,
-  '; init nobs: ', x$init_nobs,
-  '\n  f(x*) = ', x$best[x$fn_dim + 1], '\titerations: ',
-  x$n_iter, '\n', sep="")
-  invisible(x)
+print.egoOptim <- function(x,...){
+  cat("\t\tKriging Based RSO\n")
+  cat(strrep("=", 50), "\n")
 
+  cat(do.call(sprintf,
+              c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$model@d),'r',", ")),
+                as.list(x$par))))
+  cat(sprintf("\tf(x*) = %.4f\n", x$value))
+  cat("N used:", x$model@n, "\n")
 }
 

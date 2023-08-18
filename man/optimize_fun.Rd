@@ -4,10 +4,34 @@
 \alias{optimize_fun}
 \title{Optimize fun}
 \usage{
-optimize_fun(FUN, lower, upper, n = 5, nsteps = 2, top = 0.15, ntimes = 5)
+optimize_fun(
+  fun,
+  lower,
+  upper,
+  ...,
+  X = NULL,
+  y = NULL,
+  tolerr = 1e-04,
+  maxit = 20,
+  nsteps = 5,
+  rho = 0.3,
+  trueglobal = NULL,
+  maximize = FALSE,
+  do_maxit = FALSE,
+  counter = 3,
+  dimplot = 1:2,
+  budget = NULL,
+  basicEGO = FALSE,
+  n = 5 * length(lower),
+  plot = FALSE,
+  trace = 1,
+  method = c("fastEGO", "TREGO"),
+  increament_rate = 0.1,
+  seed = NULL
+)
 }
 \description{
-Uses EGO algotiyhm to optimize any given function.
+Uses EGO algorithm to optimize any given function.
 }
 \author{
 BLANK
