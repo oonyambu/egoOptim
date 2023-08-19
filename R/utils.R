@@ -25,7 +25,7 @@
 
 method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                   maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
-                  increament_rate= 0.1, save = FALSE){
+                  increament_rate= 0.1, file = NULL){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
   library(ggplot2)
@@ -104,7 +104,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
            y})
   d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
-  write.csv(d,paste0("data/", fun_name,'_', length(low), "_results.csv"))
+  if(!is.null(file)) write.csv(d, file = file))
 
   # p <- ggplot(d, aes(x = point, mean, color = Var1))+
   #   geom_point() +
