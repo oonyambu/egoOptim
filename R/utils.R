@@ -39,8 +39,8 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     }
     optimal <- dom$opt$f
     if(is.matrix(optimal)) optimal <- optimal[1,]
-    low <- dom$low
-    up <- dom$up
+    low <- if(!is.null(dom$low))dom$low else rep(0, p)
+    up <- if(!is.null(dom$up))dom$up else rep(1, p)
   }
   if(maximize & is.null(optimal)) optimal <- -1
   res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
