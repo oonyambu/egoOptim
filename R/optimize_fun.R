@@ -131,13 +131,13 @@ optimize_fun <-  function (fun, lower, upper, ..., X = NULL, y = NULL, tolerr = 
 #' @param x an object of class egoOptim
 #' @export
 print.egoOptim <- function(x,...){
-  cat("\t\tKriging Based RSO\n")
-  cat(strrep("=", 50), "\n")
-  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
-  cat(do.call(sprintf,
-              c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$model@d),'r',", ")),
-                as.list(x$par))))
-  cat(sprintf("\tf(x*) = %.4f\n", x$value))
-  cat("N used:", x$model@n, "\n")
+    cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
+    cat("\t\t\t\tKriging Based RSO\n")
+    cat(strrep("=", 73), "\n")
+    cat(do.call(sprintf,c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$model@d),'r',", ")),
+                  as.list(x$par))))
+    cat(sprintf("\tf(x*) = %.4f\t\t", x$value))
+    cat("Total Points:", x$model@n, "\n")
+    cat(strrep("_", 73), "\n")
 }
 
