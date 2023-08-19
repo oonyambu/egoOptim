@@ -104,7 +104,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
            y})
   d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
-  if(!is.null(file)) write.csv(d, file = file))
+  if(!is.null(file)) write.csv(d, file = file)
 
   # p <- ggplot(d, aes(x = point, mean, color = Var1))+
   #   geom_point() +
