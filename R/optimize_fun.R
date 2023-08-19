@@ -120,10 +120,12 @@ optimize_fun <-  function (fun, lower, upper, ..., X = NULL, y = NULL, tolerr = 
     if (count >= counter && !do_maxit) 
       break
   }
-  
-  structure(list(par = unname(center), value = optimal * (-1)^(maximize), 
-                 model = model, env = environment(), errors = c(error_init, 
-                                                                errors)), class = "egoOptim")
+   structure(list(par = unname(center),
+                 value = optimal * (-1)^(maximize), 
+                 model = model, env = environment(),
+                 call = match.call(expand.dots = TRUE),
+                 errors = c(error_init, errors)), 
+            class = "egoOptim")
 }
 
 #' print.egoOptim
