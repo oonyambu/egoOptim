@@ -201,8 +201,12 @@ continue <- function (object, ..., col = NULL){
   }
   list2env(updates, environment())
   v <- rev(body(optimize_fun))[1:2]
-  if(is.null(col))if(length(use_colors)>1)use_colors <- use_colors[-1]
-  else use_colors <- col
+  if(plot){
+    if(is.null(col)){
+      if(length(use_colors)>1)use_colors <- use_colors[-1]
+      }
+    else use_colors <- col
+  }
   eval(v[[2]])
   results <- eval(v[[1]])
   list2env(setNames(list(results), nms), parent.frame())
