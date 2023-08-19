@@ -91,7 +91,7 @@ domain <- function(fun_name = NULL){
   camel6 = list(lower= c(-3,-2), upper = c(3,2),
                 opt = list(x = rbind(c(0.0898, -0.7126),
                                      c(-0.0898, 0.7126)),
-                           f = -1.0316)),
+                           f = -1.031628)),
   dixonpr = function(d)list(lower = rep(-10, d), upper = rep(10,d),
                             opt = list(x = 2^(-((2^seq(d) - 2)/(2^seq(d)))),
                                        f = 0)),
