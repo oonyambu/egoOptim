@@ -189,12 +189,20 @@ plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
   }
 
 
-continue <- function(object, new_budget){
+
+continue <- function (object, ..., col = NULL){
+  updates <- list(...)
   nms <- deparse1(substitute(object))
   list2env(mget(names(object$env), object$env), environment())
-  maxit <- new_budget %/% nsteps
-  do_maxit <- TRUE
+  if(!is.null(updates$budget)) {
+    maxit <- updates$budget%/%nsteps
+    updates$budget <- NULL
+    do_maxit <- TRUE
+  }
+  list2env(updates, environment())
   v <- rev(body(optimize_fun))[1:2]
+  if(is.null(col))if(length(use_colors)>1)use_colors <- use_colors[-1]
+  else use_colors <- col
   eval(v[[2]])
   results <- eval(v[[1]])
   list2env(setNames(list(results), nms), parent.frame())
