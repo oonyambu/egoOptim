@@ -53,7 +53,8 @@ domain <- function(fun_name = NULL){
   schwef = function(d) list(lower = rep(-500, d), upper = rep(500,d),
                             opt = list(x = rep(420.9687,d), f = 0)),
   shubert = list(lower = c(-5.12, -5.12), upper = c(5.12, 5.12),
-                 opt = c(f = -186.7309)),
+                  opt = list(x = c(-0.800322, 4.858051),
+                            f =  -186.7309088)),
 
   # Bowl-Shaped
   boha1 = list(lower = c(-100, -100), upper = c(100, 100),
@@ -91,7 +92,7 @@ domain <- function(fun_name = NULL){
   camel6 = list(lower= c(-3,-2), upper = c(3,2),
                 opt = list(x = rbind(c(0.0898, -0.7126),
                                      c(-0.0898, 0.7126)),
-                           f = -1.0316)),
+                           f = -1.031628)),
   dixonpr = function(d)list(lower = rep(-10, d), upper = rep(10,d),
                             opt = list(x = 2^(-((2^seq(d) - 2)/(2^seq(d)))),
                                        f = 0)),

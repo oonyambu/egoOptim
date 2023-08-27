@@ -1,27 +1,6 @@
-#library(egoOptim)
-#a <- optimize_fun(branin, c(-5,0),c(10,15), trueglobal = domain('branin')$opt$f)
 
 
-#print.my_optim <- egoOptim:::print.my_optim
-#a <- opt_fun1(branin, c(-5,0),c(10,15), trueglobal = domain('branin')$opt$f, method = 'TREGO')
-
-
-
-
-
-
-# fn <- function(call, n){
-#   call <- substitute(call)
-#   m <- vector('list', n)
-#   nobs <- numeric(n)
-#   for(i in seq_len(n)){
-#     cat("it: ", i, " .....\n", sep="")
-#     m[[i]] <- try(eval(call, parent.frame()), silent = TRUE)
-#     nobs[i] <- if(inherits(m[[i]],'try-catch')) NA else m[[i]]$model@n
-#   }
-#   structure(m[[i]], nobs=nobs, results=m)
-# }
-
+#' @export
 
 method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                            maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
@@ -93,16 +72,6 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
   d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
   if(!is.null(file)) write.csv(d, file = file)
-
-  # p <- ggplot(d, aes(x = point, mean, color = Var1))+
-  #   geom_point() +
-  #   geom_line(linewidth = 1) +
-  #   geom_errorbar(aes(ymax = (if(maximize)pmin(mean + sd,1) else mean+sd),
-  #                     ymin =(if(maximize) pmax(mean - sd, 0) else mean - sd)),
-  #                 linewidth = 1, width = 1, alpha=0.5) +
-  #   labs(color = 'Method') +
-  #   ylab(if(maximize)'accuracy' else bquote(Log[10]* ' Loss')) +
-  #   xlab('m added points')
   list(res=res, plot = plotComparison(d))
 }
 
@@ -149,7 +118,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 #                        maximize = TRUE)
 #
 
-
+#' @export
 
 plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
   if(!is.data.frame(res)){
@@ -179,13 +148,12 @@ plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
 
 
 
-
+#' @export
+#'
 my_contour <- function(x1, x2, Z, xlab = NULL,
                        ylab = NULL, title = NULL,
                        background = "white", title.adjust = 0.5,
                        subtitle = "it1",nlevels=100, col='blue', ...){
-
-
   par(bg = background,
       adj=0.5,
       tck = -0.02,
@@ -220,6 +188,8 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
         adj = title.adjust, sub = subtitle)
 
 }
+
+#' @export
 
 add_budget <- function(object, ...){
   UseMethod('add_budget')
@@ -258,6 +228,7 @@ add_budget.list <- function(object, its, new_budget, inplace = FALSE){
   else object
 }
 
+#' @export
 add_replicates <- function(call, reps){
 
   a <- call$call$reps
