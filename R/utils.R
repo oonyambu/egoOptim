@@ -120,16 +120,19 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 
 #' @export
 
-plotComparison <- function(res,
-                n = NULL, maximize = FALSE, m=0, nsteps = 5){
+plotComparison <- function(res, n = NULL,
+                           maximize = FALSE, m=0,
+                           nsteps = 5, errorbars = TRUE, which = 'errors'){
+
   if(!is.data.frame(res)){
     r <- lapply(res, \(x){
-      vals <- sapply(x, getElement, 'errors')
-      vals <- if(maximize) 1- vals else log10(vals)
+      vals <- sapply(x, getElement, which)
+      vals <- if(maximize) 1 - vals else log10(vals)
       y <- data.frame(t(apply(vals, 1,
                               \(y)c(mean = mean(y), sd = sd(y)))))
       y})
-    d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
+    d <- transform(array2DF(structure(r, dim = length(r))),
+                   point = seq(0,by = nsteps, length = nrow(r[[1]])))
   }
   else d <- res
   if(is.null(n)) n <- max(d$point)
@@ -137,13 +140,15 @@ plotComparison <- function(res,
   ggplot(d, aes(x = point, mean, color = Var1))+
     geom_point() +
     geom_line(linewidth = 1) +
-    geom_errorbar(aes(ymax = (if(maximize)pmin(mean + sd,1) else mean+sd),
-                      ymin =(if(maximize) pmax(mean - sd, 0) else mean - sd)),
-                  linewidth = 1, width = 1, alpha=0.5) +
+    { if(errorbars)
+      geom_errorbar(aes(ymax = (if(maximize)pmin(mean + sd,1) else mean+sd),
+                        ymin =(if(maximize) pmax(mean - sd, 0) else mean - sd)),
+                    linewidth = 1, width = 1, alpha=0.5)
+    }+
     labs(color = 'Method') +
     ylab(if(maximize)'accuracy' else bquote(Log[10]* ' Loss')) +
     xlab('Total points Used') +
-    scale_x_continuous(labels=~.x+10, breaks = ~seq(0, .x[2],nsteps))
+    scale_x_continuous(labels=~.x)
 }
 
 
