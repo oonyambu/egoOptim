@@ -1,0 +1,160 @@
+#' Optimize fun
+#'
+#' Uses EGO algorithm to optimize any given function.
+#'
+#' @author BLANK
+#'
+#'
+#' @export
+
+optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL,
+                         tolerr = 1e-4, maxit = 20,
+                         nsteps = 5, rho = 0.3, trueglobal = NULL, maximize = FALSE,
+                         do_maxit = FALSE, counter = 5, dimplot = 1:2, budget = NULL,
+                         basicEGO = FALSE, n = 5*length(lower), plot = FALSE, trace = 1,
+                         method = c('fastEGO','TREGO'),
+                         increament_rate = 0,
+                         seed = NULL, cost = NULL){
+
+  # Rewrite the function in case of maximization:
+  .fun <-  function(x) (-1)^(maximize)*fun(x, ...)
+  if(!is.null(trueglobal)) trueglobal <- (-1)^maximize*trueglobal
+  # Initialization
+  count <- 0
+  signifs <- ceiling(1-log10(tolerr))
+  init_lower <- lower
+  init_upper <- upper
+  method <- getFromNamespace(paste0(method[1], ".nsteps"), "DiceOptim")
+
+
+  # Generate scaled X matrix and Y values
+  p <- length(lower)
+
+  if(!is.null(budget)) {
+    add <- budget - n
+    n <- n + add %% nsteps
+    maxit <- add %/% nsteps
+    do_maxit <- TRUE
+  }
+  errors <- numeric(maxit)
+  set.seed(seed)
+  if(is.null(X)) {
+    X <- lhs::maximinLHS(n, p)
+    X <- mapply(scales::rescale, data.frame(X),data.frame(rbind(lower, upper)))
+    y <- apply(X, 1, .fun) #
+  }
+
+
+  # Starting Optimal value -- Enable to compute error.
+  optimal <- min(y)
+  error_init <- if(!is.null(trueglobal)) {
+    maximize + optimal - trueglobal*(!maximize)
+  }else NULL
+
+  if(!is.function(cost)) cost <- .fun
+  loss_init <- cost(X[which.min(y),])
+  # Run kriging model
+  model <- DiceKriging::km(design = X, response = y, control = list(trace = 0))
+
+
+  #plot the first 2 dimensions holding the other dimensions at midpoint:
+  if(plot){
+    use_colors <- c("red", "blue", "green","yellow", "orange","purple",
+                    rainbow(maxit))
+    if(length(dimplot)!=2) stop("you can only plot 2d", call. = FALSE)
+    col_order <- order(c(dimplot, setdiff(seq_len(p), dimplot)))
+
+    rem <- if (p>2) tail((lower + upper)/2, -2) else NULL
+    x1 <- seq(lower[dimplot[1]], upper[dimplot[1]], length = 50)
+    x2 <- seq(lower[dimplot[2]], upper[dimplot[2]], length = 50)
+    Z <- outer(x1, x2, Vectorize(\(x, y).fun(c(x, y, rem)[col_order])))
+    my_contour(x1, x2, Z)
+    points(cbind(X, y), pch=16, col=1)
+    rect(lower[dimplot[1]], lower[dimplot[2]],
+         upper[dimplot[1]], upper[dimplot[2]], border = 'black')
+  }
+  loss <- NULL
+  for(i in seq_len(maxit)){
+
+    #Fit the EGO
+    oEGO <- method(model, .fun, nsteps, lower, upper,trace = FALSE)
+    model <- oEGO$lastmodel
+
+    # Obtain the center and ROI
+    o <- order(model@y)
+    center <- model@X[o[1], ]
+
+    # Compute the error and set the previous optimal to be the current optimal
+    err <- optimal - model@y[o[1]]
+    optimal <- model@y[o[1]]
+    if(is.function(cost)) loss[i] <- cost(center)
+
+    if(!basicEGO) {
+      top_n <- ceiling(rho * nrow(model@X))
+      dist <- diff(apply( model@X[o[seq_len(top_n)], ], 2, range))/2
+      lower <- c(pmax(center - dist, init_lower))
+      upper <- c(pmin(center + dist, init_upper))
+      if(err < tolerr) {
+        count <- count + 1
+        if(increament_rate > 0 ){
+          lower <- c(pmax(center - (1 + increament_rate)^(1/p)*dist, init_lower))
+          upper <- c(pmin(center + (1 + increament_rate)^(1/p)*dist, init_upper))
+        }
+        else {
+          lower <- init_lower
+          upper <- init_upper
+        }
+      }
+    }
+
+    #Plot the new ROI and the added points
+    if(plot){
+      rect(lower[dimplot[1]], lower[dimplot[2]],
+           upper[dimplot[1]], upper[dimplot[2]], border = use_colors[i])
+      points(oEGO$par[,dimplot, drop = FALSE], col=use_colors[i], pch=16)
+      Sys.sleep(1)
+    }
+    if(!is.null(trueglobal)) {
+      trueERR <- optimal - trueglobal
+      errors[i] <- trueERR
+    }
+
+    if(trace){
+      cat(sprintf(sprintf("it: %02d\tf(x*): %%.%df\terrr: %%.%df\t", i, signifs, signifs),
+                  optimal*(-1)^(maximize),err))
+      if(p<6){
+        fmt <- sprintf("[%s]\tcount:%02i\t", trimws(strrep("%.4f, ", p),'r',", "), count)
+        cat(do.call(sprintf, c(fmt, as.list(center))))
+      }
+      if(!is.null(trueglobal))cat(sprintf(sprintf("trueERR: %%.%df", signifs), trueERR))
+      cat("\n")
+    }
+
+
+    if((count >= counter  || !is.null(trueglobal) && trueERR < tolerr) && !do_maxit) break
+    #cat("lower:[", lower,"] upper:[", upper,"]\n")
+
+  }
+  structure(list(par = unname(center),
+                 value = optimal * (-1)^(maximize),
+                 model = model,
+                 env = environment(),
+                 errors = c(error_init, errors),
+                 loss = c(loss_init, loss)),
+            class = 'egoOptim')
+}
+#' print.egoOptim
+#' print an egoOptim object
+#' @param x an object of class egoOptim
+#' @export
+print.egoOptim <- function(x,...){
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
+  cat("\t\t\t\tKriging Based RSO\n")
+  cat(strrep("=", 73), "\n")
+  cat(do.call(sprintf,c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$model@d),'r',", ")),
+                        as.list(x$par))))
+  cat(sprintf("\tf(x*) = %.4f\t\t", x$value))
+  cat("Total Points:", x$model@n, "\n")
+  cat(strrep("_", 73), "\n")
+}
+
