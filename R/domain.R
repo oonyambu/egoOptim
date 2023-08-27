@@ -53,7 +53,8 @@ domain <- function(fun_name = NULL){
   schwef = function(d) list(lower = rep(-500, d), upper = rep(500,d),
                             opt = list(x = rep(420.9687,d), f = 0)),
   shubert = list(lower = c(-5.12, -5.12), upper = c(5.12, 5.12),
-                 opt = c(f = -186.7309)),
+                  opt = list(x = c(-0.800322, 4.858051),
+                            f =  -186.7309088)),
 
   # Bowl-Shaped
   boha1 = list(lower = c(-100, -100), upper = c(100, 100),
