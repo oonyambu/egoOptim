@@ -1,7 +1,11 @@
 
-
+#' method comparison
+#'
+#'
+#' @author BLANK
+#'
+#'
 #' @export
-
 method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                            maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
                            increament_rate= 0, file = NULL){
@@ -118,6 +122,13 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 #                        maximize = TRUE)
 #
 
+#' plot the compared methods
+#'
+#' Uses EGO algorithm to optimize any given function.
+#'
+#' @author BLANK
+#'
+#'
 #' @export
 
 plotComparison <- function(res, n = NULL,
@@ -153,7 +164,13 @@ plotComparison <- function(res, n = NULL,
 
 
 
-
+#' contour plots
+#'
+#' Uses EGO algorithm to optimize any given function.
+#'
+#' @author BLANK
+#'
+#'
 #' @export
 #'
 my_contour <- function(x1, x2, Z, xlab = NULL,
@@ -195,7 +212,15 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 
 }
 
+#' budget addition
+#'
+#' Uses EGO algorithm to optimize any given function.
+#'
+#' @author BLANK
+#'
+#'
 #' @export
+
 
 add_budget <- function(object, ...){
   UseMethod('add_budget')
