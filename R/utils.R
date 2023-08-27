@@ -120,7 +120,8 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 
 #' @export
 
-plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
+plotComparison <- function(res,
+                n = NULL, maximize = FALSE, m=0, nsteps = 5){
   if(!is.data.frame(res)){
     r <- lapply(res, \(x){
       vals <- sapply(x, getElement, 'errors')
@@ -142,7 +143,7 @@ plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
     labs(color = 'Method') +
     ylab(if(maximize)'accuracy' else bquote(Log[10]* ' Loss')) +
     xlab('Total points Used') +
-    scale_x_continuous(labels=~.x+10, breaks = ~seq(0, .x[2],5))
+    scale_x_continuous(labels=~.x+10, breaks = ~seq(0, .x[2],nsteps))
 }
 
 
