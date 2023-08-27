@@ -24,8 +24,8 @@
 
 
 method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
-                  maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
-                  increament_rate= 0.1, file = NULL){
+                           maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
+                           increament_rate= 0, file = NULL){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
   library(ggplot2)
@@ -50,58 +50,46 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
     res[['RSO']][[i]] <- optimize_fun(fun, low, up,...,
-                                  increament_rate = increament_rate,
-                                  X = X1,y=y1,
-                                  budget = budget,
-                                  maximize = maximize,
-                                  trueglobal = optimal,
-                                  nsteps = nsteps,
-                                  do_maxit = TRUE,basicEGO = FALSE)
+                                      increament_rate = 0,
+                                      X = X1,y=y1,
+                                      budget = budget,
+                                      maximize = maximize,
+                                      trueglobal = optimal,
+                                      nsteps = nsteps,
+                                      do_maxit = TRUE,basicEGO = FALSE)
     cat("EGO ITERATION:", i, "\n")
     res[['EGO']][[i]] <- optimize_fun(fun, low, up,..., X = X1, y=y1,
-                                      increament_rate = increament_rate,
-                                  budget = budget,
-                                  maximize = maximize,
-                                  nsteps = nsteps,
-                                  trueglobal = optimal,
-                                  do_maxit = TRUE,basicEGO = TRUE)
+                                      budget = budget,
+                                      maximize = maximize,
+                                      nsteps = nsteps,
+                                      trueglobal = optimal,
+                                      do_maxit = TRUE,basicEGO = TRUE)
     cat("TREGO ITERATION:", i, "\n")
     res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
-                                    increament_rate = increament_rate,
-                                    trueglobal = optimal,
-                                    maximize = maximize,
-                                    budget = budget,
-                                    nsteps = nsteps,
-                                    do_maxit = TRUE,basicEGO = TRUE,
-                                    method = 'TREGO')
+                                        trueglobal = optimal,
+                                        maximize = maximize,
+                                        budget = budget,
+                                        nsteps = nsteps,
+                                        do_maxit = TRUE,basicEGO = TRUE,
+                                        method = 'TREGO')
+    if(increament_rate>0){
+      cat("RSO",increament_rate, "ITERATION: ", i, "\n", sep="")
+      res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
+                                          increament_rate = increament_rate,
+                                          trueglobal = optimal,
+                                          maximize = maximize,
+                                          budget = budget,
+                                          nsteps = nsteps,
+                                          do_maxit = TRUE,basicEGO = TRUE,
+                                          method = 'TREGO')
+    }
   }
-  # res <- list(RSO = fn(opt_fun1(fun, low, up,...,
-  #                        X = X1,y=y1,
-  #                        budget = budget,
-  #                        maximize = maximize,
-  #                        trueglobal = optimal,
-  #                        nsteps = nsteps,
-  #                        do_maxit = TRUE,basicEGO = FALSE), reps),
-  #      EGO = fn(opt_fun1(fun, low, up,..., X = X1, y=y1,
-  #                        budget = budget,
-  #                        maximize = maximize,
-  #                        nsteps = nsteps,
-  #                        trueglobal = optimal,
-  #                        do_maxit = TRUE,basicEGO = TRUE), reps),
-  #      TREGO = fn(opt_fun1(fun, low, up,...,X = X1,y=y1,
-  #                          trueglobal = optimal,
-  #                          maximize = maximize,
-  #                          budget = budget,
-  #                          nsteps = nsteps,
-  #                          do_maxit = TRUE,basicEGO = TRUE,
-  #                          method = 'TREGO'), reps))
-
   r <- lapply(res, \(x){
-            vals <- sapply(x, getElement, 'errors')
-            vals <- if(maximize) 1- vals else log10(vals)
-            y <- data.frame(t(apply(vals, 1,
-                               \(y)c(mean = mean(y), sd = sd(y)))))
-           y})
+    vals <- sapply(x, getElement, 'errors')
+    vals <- if(maximize) 1- vals else log10(vals)
+    y <- data.frame(t(apply(vals, 1,
+                            \(y)c(mean = mean(y), sd = sd(y)))))
+    y})
   d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
   if(!is.null(file)) write.csv(d, file = file)
@@ -132,7 +120,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 #
 # camel6_results <- my_fn('camel6', budget = 80)
 # save(camel6_results, file = "data/camel6_results.rda")
-   #
+#
 
 # dat <- read.csv('../../data/spambase/spambase.data', h=F, col.names = nms)
 #
@@ -165,13 +153,13 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 
 plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
   if(!is.data.frame(res)){
-  r <- lapply(res, \(x){
-    vals <- sapply(x, getElement, 'errors')
-    vals <- if(maximize) 1- vals else log10(vals)
-    y <- data.frame(t(apply(vals, 1,
-                            \(y)c(mean = mean(y), sd = sd(y)))))
-    y})
-  d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
+    r <- lapply(res, \(x){
+      vals <- sapply(x, getElement, 'errors')
+      vals <- if(maximize) 1- vals else log10(vals)
+      y <- data.frame(t(apply(vals, 1,
+                              \(y)c(mean = mean(y), sd = sd(y)))))
+      y})
+    d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
   }
   else d <- res
   if(is.null(n)) n <- max(d$point)
@@ -186,32 +174,9 @@ plotComparison <- function(res, n = NULL, maximize = FALSE, m=0){
     ylab(if(maximize)'accuracy' else bquote(Log[10]* ' Loss')) +
     xlab('Total points Used') +
     scale_x_continuous(labels=~.x+10, breaks = ~seq(0, .x[2],5))
-  }
-
-
-
-continue <- function (object, ..., col = NULL){
-  updates <- list(...)
-  nms <- deparse1(substitute(object))
-  list2env(mget(names(object$env), object$env), environment())
-  if(!is.null(updates$budget)) {
-    maxit <- updates$budget%/%nsteps
-    updates$budget <- NULL
-    do_maxit <- TRUE
-  }
-  list2env(updates, environment())
-  v <- rev(body(optimize_fun))[1:2]
-  if(plot){
-    if(is.null(col)){
-      if(length(use_colors)>1)use_colors <- use_colors[-1]
-      }
-    else use_colors <- col
-  }
-  eval(v[[2]])
-  results <- eval(v[[1]])
-  list2env(setNames(list(results), nms), parent.frame())
-  results
 }
+
+
 
 
 
@@ -224,15 +189,15 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
   par(bg = background,
       adj=0.5,
       tck = -0.02,
-    #mgp = c(1.5, 0.4, 0), tcl = -0.25,
-    ## Shrink the tick labels.
-    cex.axis = 0.8,
-    ## Set the axis label color
-    col.lab = "black",
-        ## Adjust the margin:  bottom, left, top, right
-    mar = c(2, 2.5, 2, 1.2)-c(0,0,is.null(title), 0),
-    bty = "n",
-    mgp = c(1, 0.2, 0))
+      #mgp = c(1.5, 0.4, 0), tcl = -0.25,
+      ## Shrink the tick labels.
+      cex.axis = 0.8,
+      ## Set the axis label color
+      col.lab = "black",
+      ## Adjust the margin:  bottom, left, top, right
+      mar = c(2, 2.5, 2, 1.2)-c(0,0,is.null(title), 0),
+      bty = "n",
+      mgp = c(1, 0.2, 0))
 
   if(is.null(xlab)) xlab <- deparse1(substitute(x1))
   if(is.null(ylab)) ylab <- deparse1(substitute(x2))
@@ -255,3 +220,55 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
         adj = title.adjust, sub = subtitle)
 
 }
+
+add_budget <- function(object, ...){
+  UseMethod('add_budget')
+}
+
+add_budget.egoOptim <- function(object, its, new_budget){
+  list2env(mget(names(object$env), object$env), environment())
+  if(!missing(its)) maxit <- its
+  if(!missing(new_budget)) {
+    maxit <- new_budget %/% nsteps
+    do_maxit <- TRUE
+  }
+  new_err <- errors
+  errors <- 0
+  v <- rev(body(optimize_fun))[1:2]
+  eval(v[[2]])
+  results <- eval(v[[1]])
+  results$errors <- c(error_init, new_err, errors)
+  results
+}
+
+add_budget.list <- function(object, its, new_budget, inplace = FALSE){
+  nms <-  deparse1(substitute(object))
+  for(i in names(object$res)){
+    for(j in seq_along(object$res[[i]])){
+      cat("updating", i, "it:", j, "\n")
+      object$res[[i]][[j]] <- add_budget(object$res[[i]][[j]],
+                                         its = its, new_budget = new_budget)
+    }
+  }
+  object$plot <- plotComparison(object$res)
+  if(inplace)
+    setNames(list(object), nms)|>
+    list2env(parent.frame())|>
+    invisible()
+  else object
+}
+
+add_replicates <- function(call, reps){
+
+  a <- call$call$reps
+  call$call$reps <- reps
+  res <- Map(c, call$res, eval(call$call)$res)
+  call$call$reps <- reps + a
+  v <- mget(c('maximize','nsteps'), call$res[[1]][[1]]$env)
+  list(res = res,
+       plot = plotComparison(res, maximize = v$maximize,
+                             nsteps = v$nsteps,
+                             errorbars = !v$maximize),
+       call=call$call)
+}
+
