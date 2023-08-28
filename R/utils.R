@@ -15,8 +15,8 @@ requireNamespace("ggplot2")
 #'
 #' @export
 method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
-                           maximize = FALSE, reps = 20L, nsteps = 5, plt = FALSE,
-                           increament_rate= 0, file = NULL){
+                           maximize = FALSE, reps = 20L,
+                           nsteps = 5, expansion_rate= 0, file = NULL){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
   optimal <- NULL
@@ -40,38 +40,38 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
     res[['RSO']][[i]] <- optimize_fun(fun, low, up,...,
-                                      increament_rate = 0,
+                                      expansion_rate = 0,
                                       X = X1,y=y1,
                                       budget = budget,
                                       maximize = maximize,
-                                      trueglobal = optimal,
+                                      control = list(trueglobal = optimal,
                                       nsteps = nsteps,
-                                      do_maxit = TRUE,basicEGO = FALSE)
+                                      do_maxit = TRUE,basicEGO = FALSE))
     cat("EGO ITERATION:", i, "\n")
     res[['EGO']][[i]] <- optimize_fun(fun, low, up,..., X = X1, y=y1,
                                       budget = budget,
                                       maximize = maximize,
-                                      nsteps = nsteps,
+                                      control = list(nsteps = nsteps,
                                       trueglobal = optimal,
-                                      do_maxit = TRUE,basicEGO = TRUE)
+                                      do_maxit = TRUE,basicEGO = TRUE))
     cat("TREGO ITERATION:", i, "\n")
     res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
                                         trueglobal = optimal,
                                         maximize = maximize,
                                         budget = budget,
-                                        nsteps = nsteps,
+                                        control = list(nsteps = nsteps,
                                         do_maxit = TRUE,basicEGO = TRUE,
-                                        method = 'TREGO')
-    if(increament_rate>0){
-      cat("RSO",increament_rate, "ITERATION: ", i, "\n", sep="")
+                                        method = 'TREGO'))
+    if(expansion_rate>0){
+      cat("RSO",expansion_rate, "ITERATION: ", i, "\n", sep="")
       res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
-                                          increament_rate = increament_rate,
-                                          trueglobal = optimal,
+                                          expansion_rate = expansion_rate,
                                           maximize = maximize,
                                           budget = budget,
+                                          control = list(trueglobal = optimal,
                                           nsteps = nsteps,
                                           do_maxit = TRUE,basicEGO = TRUE,
-                                          method = 'TREGO')
+                                          method = 'TREGO'))
     }
   }
   r <- lapply(res, \(x){
@@ -80,7 +80,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     y <- data.frame(t(apply(vals, 1,
                             \(y)c(mean = mean(y), sd = sd(y)))))
     y})
-  d <- transform(array2DF(structure(r, dim = 3)), point = 5*seq(0,nrow(r[[1]])-1))
+  d <- transform(array2DF(structure(r, dim = 3)), point = nsteps*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
   if(!is.null(file)) write.csv(d, file = file)
   list(res=res, plot = plotComparison(d))

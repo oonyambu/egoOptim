@@ -24,5 +24,21 @@ healthy people from those with PD, according to "status" column
  which is set to 0 for healthy and 1 for PD.
 }
 \details{
-
+\describe{
+\item{\code{status}}{Health status of the subject (one) - Parkinson's,
+ (zero) - healthy}
+\item{\code{MDVP:Fo(Hz)}}{Average vocal fundamental frequency}
+\item{\code{MDVP:Fhi(Hz)}}{Maximum vocal fundamental frequency}
+\item{\code{MDVP:Flo(Hz)}}{Minimum vocal fundamental frequency}
+\item{\code{MDVP:Jitter(%),MDVP:Jitter(Abs),MDVP:RAP,MDVP:PPQ,
+Jitter:DDP}}{Several measures of variation in fundamental frequency}
+\item{\code{MDVP:Shimmer,MDVP:Shimmer(dB),Shimmer:APQ3,Shimmer:APQ5,
+MDVP:APQ,Shimmer:DDA}}{Several measures of variation in amplitude}
+\item{\code{NHR,HNR}}{Two measures of ratio of noise to tonal components
+in the voice}
+\item{\code{RPDE,D2}}{Two nonlinear dynamical complexity measures}
+\item{\code{DFA}}{Signal fractal scaling exponent}
+\item{\code{spread1,spread2,PPE}}{Three nonlinear measures of fundamental
+ frequency variation}
+}
 }
