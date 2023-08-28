@@ -13,15 +13,28 @@ requireNamespace("ggplot2")
 #'
 #' @author BLANK
 #'
-#'
+#' @param fun function to be optimized
+#' @param lower vector of lower bounds for the variables to be optimized over,
+#' @param upper vector of upper bounds for the variables to be optimized over,
+#' @param ... additional arguments to be passed to fun
+#' @param budget The total number of function evaluations to be carried out
+#' @param maximize logical. Should we maximize or minimize (the default)?
+#' @param p Integer. The dimension of the function in case lower is not given.
+#' @param expansion_rate double [0,1]. For the ROI expansion in case of a
+#' failed iteration. 0 implies reverting back to
+#' the initial function domain.
+#' @param reps Integer, number of replicates/trials.
+#' @param file. a character string specifying where the results will be stored
+#' in the harddrive.
 #' @export
-method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
+#'
+method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
                            maximize = FALSE, reps = 20L,
                            nsteps = 5, expansion_rate= 0, file = NULL){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
   optimal <- NULL
-  if(missing(low)){
+  if(missing(lower)){
     dom <- domain(fun)
     fun <- getFromNamespace(fun, 'egoOptim')
     if(is.function(dom)){
@@ -30,17 +43,17 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     }
     optimal <- dom$opt$f
     if(is.matrix(optimal)) optimal <- optimal[1,]
-    low <- if(!is.null(dom$low))dom$low else rep(0, p)
-    up <- if(!is.null(dom$up))dom$up else rep(1, p)
+    lower <- if(!is.null(dom$lower))dom$lower else rep(0, p)
+    upper <- if(!is.null(dom$upper))dom$upper else rep(1, p)
   }
   if(maximize & is.null(optimal)) optimal <- -1
   res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
   for(i in seq_len(reps)){
-    X <- lhs::maximinLHS(5*length(low), length(low))
-    X1 <- mapply(rescale, data.frame(X),data.frame(rbind(low, up)))
+    X <- lhs::maximinLHS(5*length(lower), length(lower))
+    X1 <- mapply(rescale, data.frame(X),data.frame(rbind(lower, upper)))
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
-    res[['RSO']][[i]] <- optimize_fun(fun, low, up,...,
+    res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,...,
                                       expansion_rate = 0,
                                       X = X1,y=y1,
                                       budget = budget,
@@ -49,14 +62,14 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                                       nsteps = nsteps,
                                       do_maxit = TRUE,basicEGO = FALSE))
     cat("EGO ITERATION:", i, "\n")
-    res[['EGO']][[i]] <- optimize_fun(fun, low, up,..., X = X1, y=y1,
+    res[['EGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       budget = budget,
                                       maximize = maximize,
                                       control = list(nsteps = nsteps,
                                       trueglobal = optimal,
                                       do_maxit = TRUE,basicEGO = TRUE))
     cat("TREGO ITERATION:", i, "\n")
-    res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
+    res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,...,X = X1,y=y1,
                                         maximize = maximize,
                                         budget = budget,
                                         control = list(trueglobal = optimal,
@@ -65,7 +78,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                                         method = 'TREGO'))
     if(expansion_rate>0){
       cat("RSO",expansion_rate, "ITERATION: ", i, "\n", sep="")
-      res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
+      res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,...,X = X1,y=y1,
                                           expansion_rate = expansion_rate,
                                           maximize = maximize,
                                           budget = budget,

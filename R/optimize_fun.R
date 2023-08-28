@@ -16,7 +16,7 @@
 #' design is used to generate 5d points as X and y_i = fun(X_i)
 #' @param rho a double [0,1] to determine the ton n observations to be used for
 #' region of interest determination
-#' @param budget description
+#' @param budget The total number of function evaluations to be carried out
 #' @param maximize logical. Should we maximize or minimize (the default)?
 #' @param expansion_rate double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
 #' the initial function domain.
