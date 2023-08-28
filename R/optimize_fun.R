@@ -1,4 +1,8 @@
 
+# @importFrom lhs maximinLHS
+# @importFrom DiceOptim fastEGO.nsteps TREGO.nsteps
+
+
 #' Optimize fun
 #'
 #' Uses EGO algorithm to optimize any given function.
@@ -6,8 +10,6 @@
 #' @author BLANK
 #'
 #' @export
-#' @importFrom lhs maximinLHS
-#' @importFrom DiceOptim fastEGO.nsteps TREGO.nsteps
 #' @param fun function to be optimized
 #' @param lower vector of lower bounds for the variables to be optimized over,
 #' @param upper vector of upper bounds for the variables to be optimized over,
@@ -182,7 +184,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
 }
 
 
-
+#' @export
 print.egoOptim <- function(x){
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
   cat("\t\t\t\tKriging Based RSO\n")
@@ -193,6 +195,7 @@ print.egoOptim <- function(x){
   cat("Total Points:", x$env$model@n, "\n")
   cat(strrep("_", 73), "\n")
 }
+
 
 #' @importFrom utils modifyList
 control_pars <- function(x, lower){
@@ -210,4 +213,4 @@ control_pars <- function(x, lower){
   if(!is.null(z$trueglobal)) z$counter <- z$maxit
   z
 }
-.S3method('print', 'egoOptim')
+

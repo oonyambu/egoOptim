@@ -2,20 +2,17 @@
 % Please edit documentation in R/utils.R
 \name{add_budget}
 \alias{add_budget}
-\title{budget addition}
+\title{add_budget}
 \usage{
 add_budget(object, its, new_budget)
 }
 \arguments{
-\item{object}{an egoOptim object or a list of egoOptim objects}
+\item{object}{@param object an egoOptim object or a list of egoOptim objects}
 
-\item{its}{the new number of iterations}
+\item{its}{Integer. Number of iterations to add}
 
-\item{new_budget}{the number of points to be added}
+\item{new_budget}{Additional number of function evaluations}
 }
 \description{
-Uses EGO algorithm to optimize any given function.
-}
-\author{
-BLANK
+A function to add budget on the evaluated object
 }

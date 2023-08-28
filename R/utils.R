@@ -106,48 +106,7 @@ rescale <- function(x, to){
 }
 
 
-#branin_results <- method_compare('branin', budget = 35)
-# save(branin_results, file = "data/branin_results.rda")
-#
-# hart3_results <- my_fn('hart3', budget = 80)
-# save(hart3_results, file = "data/hart3_results.rda")
-#
-# hart6_results <- my_fn('hart6', budget = 80)
-# save(hart6_results, file = "data/hart6_results.rda")
-#
-# camel3_results <- my_fn('camel3', budget = 80)
-# save(camel3_results, file = "data/camel3_results.rda")
-#
-# camel6_results <- my_fn('camel6', budget = 80)
-# save(camel6_results, file = "data/camel6_results.rda")
-#
 
-# dat <- read.csv('../../data/spambase/spambase.data', h=F, col.names = nms)
-#
-# names(dat) <- nms
-# dat$class <- factor(dat$class)
-#
-# spambase <- tidyr::as_tibble(model.frame(class~.,dat))
-# save(spambase, file = "data/spambase.rda")
-#
-#
-#
-#
-# wine_results <- my_fn(svm_accuracy, c(2^-16, 2^-6), c(2^6, 2^16),
-#       param_names = c('gamma', 'cost'),
-#       object = svm(class~., wine, kernel = 'radial'),
-#       maximize = TRUE)
-# #
-# accoustic_results <- my_fn(svm_accuracy, c(2^-16, 2^-6), c(2^6, 2^16),
-#             param_names = c('gamma', 'cost'),
-#             object = svm(Class~., accoustic, kernel = 'radial'),
-#             maximize = TRUE)
-
-# seed_results <- my_fn(svm_accuracy, c(2^-16, 2^-6), c(2^6, 2^16),
-#                        param_names = c('gamma', 'cost'),
-#                        object = svm(Type~., seeds, kernel = 'radial'),
-#                        maximize = TRUE)
-#
 
 utils::globalVariables(c("Var1", "point"))
 
@@ -273,18 +232,16 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 
 }
 
-#' budget addition
+
+
+#' A function to add budget on the evaluated object
 #'
-#' Uses EGO algorithm to optimize any given function.
 #'
-#' @author BLANK
-#' @param object an egoOptim object or a list of egoOptim objects
-#' @param new_budget the number of points to be added
-#' @param its the new number of iterations
+#' @title add_budget
+#' @param object @param object an egoOptim object or a list of egoOptim objects
+#' @param new_budget Additional number of function evaluations
+#' @param its Integer. Number of iterations to add
 #' @export
-
-
-
 
 add_budget <- function(object, its, new_budget){
   UseMethod('add_budget')
