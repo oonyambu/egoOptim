@@ -6,10 +6,13 @@
 \usage{
 forretal08(x)
 }
+\arguments{
+\item{x}{an double between 0 and 1}
+}
 \description{
 Dimensions: 1
 	This function is a simple one-dimensional test function. It is multimodal, with one global minimum, one local minimum and a zero-gradient inflection point.
-	The function is evaluated on x <U+2208> [0, 1].
+	The function is evaluated on x  [0, 1].
 	Modifications and Alternative Forms:
 	For the purpose of multi-fidelity analysis, the following function is used for the lower fidelity code:
 	Here, the constants A, B and C can be varied to improve the fidelity of the low-fidelity function. In the plot above, the values used are (as in Forrester et al., 2008): A = 0.5, B = 10, C = -5.

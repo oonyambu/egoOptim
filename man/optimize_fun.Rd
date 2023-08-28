@@ -11,27 +11,61 @@ optimize_fun(
   ...,
   X = NULL,
   y = NULL,
-  tolerr = 1e-04,
-  maxit = 20,
-  nsteps = 5,
   rho = 0.3,
-  trueglobal = NULL,
   maximize = FALSE,
-  do_maxit = FALSE,
-  counter = 3,
-  dimplot = 1:2,
   budget = NULL,
-  basicEGO = FALSE,
-  n = 5 * length(lower),
-  plot = FALSE,
-  trace = 1,
-  method = c("fastEGO", "TREGO"),
-  increament_rate = 0.1,
-  seed = NULL
+  expansion_rate = 0,
+  control = list()
 )
+}
+\arguments{
+\item{fun}{function to be optimized}
+
+\item{lower}{vector of lower bounds for the variables to be optimized over,}
+
+\item{upper}{vector of upper bounds for the variables to be optimized over,}
+
+\item{...}{additional arguments to be passed to fun}
+
+\item{X, y}{the initial points where fun has been evaluated. If null, a maximinLHS
+design is used to generate 5d points as X and y_i = fun(X_i)}
+
+\item{rho}{a double [0,1] to determine the ton n observations to be used for
+region of interest determination}
+
+\item{maximize}{logical. Should we maximize or minimize (the default)?}
+
+\item{budget}{description}
+
+\item{expansion_rate}{double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
+the initial function domain.}
+
+\item{control}{a list of control parameters. See ‘Details’.}
 }
 \description{
 Uses EGO algorithm to optimize any given function.
+}
+\details{
+\describe{
+ \item{\code{nsteps}}{A positive integer representing the
+ desired number of additional points per iteration}
+ \item{\code{cost}}{cost function to evaluate the loss}
+ \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
+ \item{\code{trueglobal}}{double. The true function optimum.}
+ \item{\code{tol}}{double. the desired accuracy level.ie convergence tolerance.
+ If reached before maxit, the code stops and the result returned}
+ \item{\code{do_maxit}}{logical. Whether to iterate until maxit}
+ \item{\code{counter}}{Integer. Number of times to switch to global search once local search is unsuccessful}
+ \item{\code{plot}}{logical. Should the Region be ploted?}
+ \item{\code{dimplot}}{an integer vector of length 2. The dimensions of the function to be plotted}
+ \item{\code{basicEGO}}{logical. Whether to maintain the domain as given.
+ TRUE denotes that the domain will not change throughout the optimization. This is the basic EGO algorithm}
+ \item{\code{method}}{choise between \code{fastEGO} and \code{TREGO}}
+ \item{\code{n}}{number of observations for the initial design.
+ Used if X is not provided. Defaults to \code{5*length(lower)}}
+ \item{\code{maxit}}{Integer. maximum number of iterations to be carried out. Defaults to 20}
+ \item{\code{seed}}{Set a seed for reproducability}
+}
 }
 \author{
 BLANK

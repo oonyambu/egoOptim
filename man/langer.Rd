@@ -7,8 +7,13 @@
 langer(xx, m = 5, cvec, A)
 }
 \arguments{
-\item{cvec}{m-dimensional vector (optional), with default value c(1, 2, 5, 2, 3)
-A    = (mxd)-dimensional matrix (optional), with default value:}
+\item{xx}{= c(x1, x2, ..., xd)}
+
+\item{m}{= constant (optional), with default value 5}
+
+\item{cvec}{m-dimensional vector (optional), with default value c(1, 2, 5, 2, 3)}
+
+\item{A}{= (mxd)-dimensional matrix (optional), with default value:}
 }
 \description{
 Dimensions: d
@@ -21,6 +26,4 @@ Dimensions: d
 \author{
 Sonja Surjanovic, Simon Fraser University
          	Derek Bingham, Simon Fraser University
-	xx   = c(x1, x2, ..., xd)
-	m    = constant (optional), with default value 5
 }

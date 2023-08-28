@@ -8,7 +8,7 @@
 #' @author Sonja Surjanovic, Simon Fraser University
 #'          	Derek Bingham, Simon Fraser University
 #' @param xx c(x1, x2)
-#' 	b  = constant (optional), with default value 0.5
+#' @param b  = constant (optional), with default value 0.5
 #' @export permdb
 #'
 

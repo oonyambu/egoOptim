@@ -8,7 +8,7 @@
 #' @author Sonja Surjanovic, Simon Fraser University
 #'          	Derek Bingham, Simon Fraser University
 #' @param xx c(x1, x2)
-#' 	b  = d-dimensional vector (optional), with default value
+#' @param b  = d-dimensional vector (optional), with default value
 #'      	c(8, 18, 44, 114) (when d=4)
 #' @export powersum
 #'

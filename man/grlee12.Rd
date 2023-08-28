@@ -6,10 +6,13 @@
 \usage{
 grlee12(x)
 }
+\arguments{
+\item{x}{a double between 0.5 and 2,5}
+}
 \description{
 Dimensions: 1
 	This is a simple one-dimensional test function.
-	This function is usually evaluated on the x <U+2208> [0.5, 2.5].
+	This function is usually evaluated on the x  [0.5, 2.5].
 }
 \references{
 \url{https://www.sfu.ca/~ssurjano/grlee12.html}

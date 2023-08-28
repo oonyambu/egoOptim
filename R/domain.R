@@ -126,7 +126,7 @@ domain <- function(fun_name = NULL){
   hart6 = list(lower = numeric(6), upper =rep(1, 6),
                opt = list(x = c(0.20169, 0.150011,0.476874,
                                 0.275332,0.311652,0.6573),
-                          f = -3.32237)),
+                          f = -3.042458)),
   permdb = function(d)list(lower = rep(-d,d), upper = rep(d,d),
                            opt = list(x = seq(d), f = 0)),
   powell = function(d)list(lower = rep(-4, d), upper = rep(5, d),

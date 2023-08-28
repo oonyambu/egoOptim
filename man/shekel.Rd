@@ -8,6 +8,8 @@ shekel(xx, m = 10)
 }
 \arguments{
 \item{xx}{c(x1, x2, x3, x4)}
+
+\item{m}{The number of local minima.}
 }
 \description{
 Dimensions: 4

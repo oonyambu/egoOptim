@@ -1,5 +1,13 @@
 
-#' method comparison
+
+#' @importFrom grDevices rainbow
+#' @importFrom graphics axis contour grid par points rect
+#' @importFrom stats sd setNames
+#' @importFrom utils getFromNamespace suppressForeignCheck stack tail type.convert write.csv
+
+utils::suppressForeignCheck(c('Var1', 'error_init','nsteps', 'point'))
+requireNamespace("ggplot2")
+
 #'
 #'
 #' @author BLANK
@@ -11,13 +19,12 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                            increament_rate= 0, file = NULL){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
-  library(ggplot2)
   optimal <- NULL
   if(missing(low)){
     dom <- domain(fun)
     fun <- getFromNamespace(fun, 'egoOptim')
     if(is.function(dom)){
-      if(is.null(p)) stop('the dimension `p` must be provided for ', f)
+      if(is.null(p)) stop('the dimension `p` must be provided for ', fun_name)
       else dom <- dom(p)
     }
     optimal <- dom$opt$f
@@ -29,7 +36,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
   res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
   for(i in seq_len(reps)){
     X <- lhs::maximinLHS(5*length(low), length(low))
-    X1 <- mapply(scales::rescale, data.frame(X),data.frame(rbind(low, up)))
+    X1 <- mapply(rescale, data.frame(X),data.frame(rbind(low, up)))
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
     res[['RSO']][[i]] <- optimize_fun(fun, low, up,...,
@@ -78,6 +85,11 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
   if(!is.null(file)) write.csv(d, file = file)
   list(res=res, plot = plotComparison(d))
 }
+
+rescale <- function(x, to){
+  (x - min(x))/diff(range(x))*diff(to) + to[1]
+}
+
 
 #branin_results <- method_compare('branin', budget = 35)
 # save(branin_results, file = "data/branin_results.rda")
@@ -128,7 +140,7 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
 #'
 #' @author BLANK
 #'
-#'
+#' @import ggplot2
 #' @export
 
 plotComparison <- function(res, n = NULL,
@@ -147,7 +159,7 @@ plotComparison <- function(res, n = NULL,
   }
   else d <- res
   if(is.null(n)) n <- max(d$point)
-  d <- subset(d, point>=m & point<=n)
+  d <- subset(d, point >= m & point <= n)
   ggplot(d, aes(x = point, mean, color = Var1))+
     geom_point() +
     geom_line(linewidth = 1) +
@@ -170,13 +182,35 @@ plotComparison <- function(res, n = NULL,
 #'
 #' @author BLANK
 #'
+#' @param x1,x2 locations of grid lines at which the values in z are measured.
+#'  These must be in ascending order. By default, equally spaced values from 0 to 1 are used.
+#'  If x is a list, its components x$x and x$y are used for x and y, respectively.
+#'  If the list has component z this is used for z.
 #'
+#' @param Z a matrix containing the values to be plotted
+#' (NAs are allowed). Note that x can be used instead of z
+#' for convenience.
+#'
+#' @param xlab,ylab labels for x and y axis respectively. defaults to NULL
+#'
+#' @param title,subtitle title/subtitle of the plot
+#'
+#' @param background the background color
+#'
+#' @param title.adjust adjust the title
+#'
+#' @param nlevels number of contour levels desired *iff* levels is not supplied.
+#'
+#' @param col the color for the contours
+#'
+#' @param ... 	additional arguments to plot.window, title, Axis and box,
+#'     typically graphical parameters such as cex.axis.
 #' @export
 #'
 my_contour <- function(x1, x2, Z, xlab = NULL,
-                       ylab = NULL, title = NULL,
+                       ylab = NULL, title = NULL,subtitle = "it1",
                        background = "white", title.adjust = 0.5,
-                       subtitle = "it1",nlevels=100, col='blue', ...){
+                       nlevels=100, col='blue', ...){
   par(bg = background,
       adj=0.5,
       tck = -0.02,
@@ -217,33 +251,36 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 #' Uses EGO algorithm to optimize any given function.
 #'
 #' @author BLANK
-#'
-#'
+#' @param object an egoOptim object or a list of egoOptim objects
+#' @param new_budget the number of points to be added
+#' @param its the new number of iterations
 #' @export
 
 
-add_budget <- function(object, ...){
+add_budget <- function(object, its, new_budget){
   UseMethod('add_budget')
 }
 
-add_budget.egoOptim <- function(object, its, new_budget){
-  list2env(mget(names(object$env), object$env), environment())
-  if(!missing(its)) maxit <- its
+add_budget.egoOptim <- function(object, new_budget, its){
+  if(!missing(its)) object$env$ctr$maxit <- its
   if(!missing(new_budget)) {
-    maxit <- new_budget %/% nsteps
-    do_maxit <- TRUE
+    object$env$ctr$maxit <- new_budget %/% object$env$ctr$nsteps
+    object$env$ctr$do_maxit <- TRUE
   }
-  new_err <- errors
+  new_err <- object$env$errors
   errors <- 0
-  v <- rev(body(optimize_fun))[1:2]
-  eval(v[[2]])
-  results <- eval(v[[1]])
-  results$errors <- c(error_init, new_err, errors)
+  v <- body(optimize_fun)
+  len <- length(v)
+  v[[len]][[2]][[5]] <- NULL
+
+  results <- eval(call("{", v[[len - 1]], v[[len]]),
+                 as.list(object$env,all.names = TRUE))
+  results$errors <- c(object$errors, results$env$errors)
+  results$call <- object$call
   results
 }
 
-add_budget.list <- function(object, its, new_budget, inplace = FALSE){
-  nms <-  deparse1(substitute(object))
+add_budget.list <- function(object, its, new_budget){
   for(i in names(object$res)){
     for(j in seq_along(object$res[[i]])){
       cat("updating", i, "it:", j, "\n")
@@ -252,25 +289,27 @@ add_budget.list <- function(object, its, new_budget, inplace = FALSE){
     }
   }
   object$plot <- plotComparison(object$res)
-  if(inplace)
-    setNames(list(object), nms)|>
-    list2env(parent.frame())|>
-    invisible()
-  else object
+  object
 }
 
+#' Replications addition
+#' @author None
 #' @export
-add_replicates <- function(call, reps){
+#' @param object a list of egoObjects
+#' @param reps the number of replicates to be added
+add_replicates <- function(object, reps){
 
-  a <- call$call$reps
-  call$call$reps <- reps
-  res <- Map(c, call$res, eval(call$call)$res)
-  call$call$reps <- reps + a
-  v <- mget(c('maximize','nsteps'), call$res[[1]][[1]]$env)
+  a <- object$call$reps
+  object$call$reps <- reps
+  res <- Map(c, object$res, eval(object$call)$res)
+  object$call$reps <- reps + a
+  v <- mget(c('maximize','nsteps'), object$res[[1]][[1]]$env)
   list(res = res,
        plot = plotComparison(res, maximize = v$maximize,
                              nsteps = v$nsteps,
                              errorbars = !v$maximize),
-       call=call$call)
+       call=object$call)
 }
+
+
 

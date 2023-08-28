@@ -9,10 +9,13 @@
 #' @author Sonja Surjanovic, Simon Fraser University
 #'          	Derek Bingham, Simon Fraser University
 #' @param xx c(x1, x2, x3, x4)
+#' @param m The number of local minima.
+#' @usage shekel(xx, m = 10)
+#'
 #' @export shekel
 #'
 
-shekel <- function(xx, m=10)
+shekel <- function(xx, m = 10)
 {
 
   m <- 10

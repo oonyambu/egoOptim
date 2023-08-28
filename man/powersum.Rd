@@ -7,9 +7,10 @@
 powersum(xx, b)
 }
 \arguments{
-\item{xx}{c(x1, x2)
-b  = d-dimensional vector (optional), with default value
-     c(8, 18, 44, 114) (when d=4)}
+\item{xx}{c(x1, x2)}
+
+\item{b}{= d-dimensional vector (optional), with default value
+c(8, 18, 44, 114) (when d=4)}
 }
 \description{
 Dimensions: d

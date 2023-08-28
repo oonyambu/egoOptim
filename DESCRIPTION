@@ -10,13 +10,12 @@ Depends:
     R (>= 3.6)
 Imports:
     ggplot2,
-    dplyr,
     lhs,
     DiceOptim
 Suggests:
     DiceKriging,
     devtools,
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3

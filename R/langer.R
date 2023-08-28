@@ -8,10 +8,10 @@
 #' 	Molga, M., & Smutnicki, C. Test functions for optimization needs (2005). Retrieved June 2013, from http://www.zsd.ict.pwr.wroc.pl/files/docs/functions.pdf.
 #' @author Sonja Surjanovic, Simon Fraser University
 #'          	Derek Bingham, Simon Fraser University
-#' 	xx   = c(x1, x2, ..., xd)
-#' 	m    = constant (optional), with default value 5
+#' @param xx   = c(x1, x2, ..., xd)
+#' @param m    = constant (optional), with default value 5
 #' @param cvec m-dimensional vector (optional), with default value c(1, 2, 5, 2, 3)
-#' 	A    = (mxd)-dimensional matrix (optional), with default value:
+#' @param	A    = (mxd)-dimensional matrix (optional), with default value:
 #' @export langer
 #'
 

@@ -7,8 +7,9 @@
 permdb(xx, b = 0.5)
 }
 \arguments{
-\item{xx}{c(x1, x2)
-b  = constant (optional), with default value 0.5}
+\item{xx}{c(x1, x2)}
+
+\item{b}{= constant (optional), with default value 0.5}
 }
 \description{
 Dimensions: d

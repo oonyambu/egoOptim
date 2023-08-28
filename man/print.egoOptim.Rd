@@ -5,7 +5,7 @@
 \title{print.egoOptim
 print an egoOptim object}
 \usage{
-\method{print}{egoOptim}(x, ...)
+\method{print}{egoOptim}(x)
 }
 \arguments{
 \item{x}{an object of class egoOptim}
