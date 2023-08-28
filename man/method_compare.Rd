@@ -13,9 +13,9 @@ method_compare(
   p = NULL,
   maximize = FALSE,
   reps = 20L,
-  nsteps = 5,
   expansion_rate = 0,
-  file = NULL
+  file = NULL,
+  control = list(nsteps = 3)
 )
 }
 \arguments{
@@ -38,6 +38,9 @@ method_compare(
 \item{expansion_rate}{double [0,1]. For the ROI expansion in case of a
 failed iteration. 0 implies reverting back to
 the initial function domain.}
+
+\item{control}{a list of control parameters passed to the optimize_fun.
+See ‘optimized_fun’ for more information.}
 
 \item{file.}{a character string specifying where the results will be stored
 in the harddrive.}
