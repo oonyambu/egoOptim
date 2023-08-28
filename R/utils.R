@@ -91,7 +91,8 @@ method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
                             \(y)c(mean = mean(y), sd = sd(y)))))
     y})
   d <- transform(array2DF(structure(r, dim = 3)),
-                 point = control$nsteps*seq(0,nrow(r[[1]])-1))
+                 point = res$RSO[[1]]$env$ctr$nsteps *
+                   seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
   if(!is.null(file)) write.csv(d, file = file)
   list(res=res, plot = plotComparison(d,
