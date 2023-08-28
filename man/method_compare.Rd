@@ -9,7 +9,7 @@ method_compare(
   lower,
   upper,
   ...,
-  budget = 50,
+  budget = 70,
   p = NULL,
   maximize = FALSE,
   reps = 20L,

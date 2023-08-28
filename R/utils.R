@@ -30,7 +30,7 @@ requireNamespace("ggplot2")
 #'  See ‘optimized_fun’ for more information.
 #' @export
 #'
-method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
+method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
                            maximize = FALSE, reps = 20L,
                            expansion_rate= 0, file = NULL,
                            control = list(nsteps = 3)){
@@ -160,8 +160,9 @@ rescale <- function(x, to){
 plotComparison <- function(res, n = NULL,
                            maximize = FALSE, m=0,
                            nsteps = 5, errorbars = TRUE, which = 'errors'){
-
+  nn <- 0
   if(!is.data.frame(res)){
+    nn <- nrow(res[[1]][[1]]$env$X)
     r <- lapply(res, \(x){
       vals <- sapply(x, getElement, which)
       vals <- if(maximize) 1 - vals else log10(vals)
@@ -185,7 +186,7 @@ plotComparison <- function(res, n = NULL,
     labs(color = 'Method') +
     ylab(if(maximize)'accuracy' else bquote(Log[10]* ' Loss')) +
     xlab('Total points Used') +
-    scale_x_continuous(labels=~.x)
+    scale_x_continuous(labels=~.x + nn)
 }
 
 
