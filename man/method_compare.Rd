@@ -39,11 +39,11 @@ method_compare(
 failed iteration. 0 implies reverting back to
 the initial function domain.}
 
+\item{file}{a character string specifying where the results will be stored
+in the hard drive.}
+
 \item{control}{a list of control parameters passed to the optimize_fun.
 See ‘optimized_fun’ for more information.}
-
-\item{file.}{a character string specifying where the results will be stored
-in the harddrive.}
 }
 \description{
 Function to compare different methods

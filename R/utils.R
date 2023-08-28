@@ -24,8 +24,8 @@ requireNamespace("ggplot2")
 #' failed iteration. 0 implies reverting back to
 #' the initial function domain.
 #' @param reps Integer, number of replicates/trials.
-#' @param file. a character string specifying where the results will be stored
-#' in the harddrive.
+#' @param file a character string specifying where the results will be stored
+#' in the hard drive.
 #' @param control a list of control parameters passed to the optimize_fun.
 #'  See ‘optimized_fun’ for more information.
 #' @export
@@ -148,6 +148,8 @@ rescale <- function(x, to){
 #                        maximize = TRUE)
 #
 
+utils::globalVariables(c("Var1", "point"))
+
 #' plot the compared methods
 #'
 #' Uses EGO algorithm to optimize any given function.
@@ -155,7 +157,15 @@ rescale <- function(x, to){
 #' @author BLANK
 #'
 #' @import ggplot2
+#' @param res a list of egooptim objects
+#' @param n the upper cutoff
+#' @param m lower cutoff
+#' @param maximize whether to plot accuracy or error
+#' @param nsteps determines the breaks at the x axis
+#' @param errorbars logical. Whether to plot the errorbars
+#' @param which The element in the egoOptim object to be plotted
 #' @export
+
 
 plotComparison <- function(res, n = NULL,
                            maximize = FALSE, m=0,
@@ -273,6 +283,8 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 #' @export
 
 
+
+
 add_budget <- function(object, its, new_budget){
   UseMethod('add_budget')
 }
@@ -327,5 +339,7 @@ add_replicates <- function(object, reps){
        call=object$call)
 }
 
+.S3method('add_budget', 'egoOptim')
+.S3method('add_budget', 'list')
 
 

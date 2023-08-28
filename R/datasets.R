@@ -113,7 +113,7 @@ NULL
 
 
 
-#' @name LiverDisorders
+#' @name liverDisorders
 #' @docType data
 #' @aliases bupa
 #' @title Liver Disorders
@@ -225,5 +225,127 @@ NULL
 NULL
 
 
+#' @name raisin
+#' @docType data
+#' @title Raisin
+#' @description
+#' Images of Kecimen and Besni raisin varieties grown in Turkey were obtained
+#'  with CVS. A total of 900 raisin grains were used, including 450 pieces
+#'  from both varieties. These images were subjected to various stages of
+#'  pre-processing and 7 morphological features were extracted. These features
+#'   have been classified using three different artificial intelligence
+#'   techniques.
+#' @source Çinar,İ̇lkay, Koklu,Murat, and Tasdemir,Sakir. (2023). Raisin.
+#'  UCI Machine Learning Repository. https://doi.org/10.24432/C5660T.
+#'
+#'  @format A data set with 900 observations and 8 features
+#'
+
+NULL
+
+#' @name seeds
+#' @docType data
+#' @title seeds
+#' @description
+#' Measurements of geometrical properties of kernels belonging to three
+#' different varieties of wheat. A soft X-ray technique and GRAINS package
+#' were used to construct all seven, real-valued attributes.
+#'
+#' @source Charytanowicz,Magorzata, Niewczas,Jerzy, Kulczycki,Piotr,
+#' Kowalski,Piotr, and Lukasik,Szymon. (2012). seeds. UCI Machine Learning
+#' Repository. https://doi.org/10.24432/C5H30K.
+#'
+#' @details
+#' The examined group comprised kernels belonging to three different varieties
+#' of wheat: Kama, Rosa and Canadian, 70 elements each, randomly selected for
+#' the experiment. High quality visualization of the internal kernel structure
+#' was detected using a soft X-ray technique. It is non-destructive and
+#' considerably cheaper than other more sophisticated imaging techniques
+#' like scanning microscopy or laser technology. The images were recorded on
+#' 13x18 cm X-ray KODAK plates. Studies were conducted using combine harvested
+#' wheat grain originating from experimental fields, explored at the Institute
+#' of Agrophysics of the Polish Academy of Sciences in Lublin.
+#' \describe{
+#' To construct the data, seven geometric parameters of wheat kernels were
+#' measured: \code{area A}; \code{perimeter P};
+#'  \code{compactness C = 4*pi*A/P^2}; \code{kernel_length} - Length of kernel;
+#' \code{kernel_width} - width of kernel; \code{asymmetry coefficient};
+#' \code{kernel_groove_length} - length of kernel groove.
+#' All of these parameters were real-valued continuous.
+#' }
+#' @format A dataset with 210 observations and 8 features
+
+NULL
 
 
+
+#'
+#' @name vertebral
+#' @docType data
+#' @aliases vertebral2 vertebral3
+#' @source Barreto,Guilherme and Neto,Ajalmar. (2011). Vertebral Column.
+#'  UCI Machine Learning Repository. https://doi.org/10.24432/C5K89B.
+#' @title Vertebral Column
+#'
+#' @description
+#' Data set containing values for six biomechanical features used to classify
+#' orthopaedic patients into 3 classes (normal, disk hernia or
+#' spondilolysthesis) or 2 classes (normal or abnormal).
+#'
+#' @details
+#' Biomedical data set built by Dr. Henrique da Mota during a medical residence
+#'  period in the Group of Applied Research in Orthopaedics (GARO) of the
+#'  Centre MÃ©dico-Chirurgical de RÃ©adaptation des Massues, Lyon, France. The
+#'   data have been organized in two different but related classification tasks.
+#'    The first task consists in classifying patients as belonging to one out
+#'    of three categories: Normal (100 patients), Disk Hernia (60 patients) or
+#'    Spondylolisthesis  (150 patients). For the second task, the categories
+#'    Disk Hernia and Spondylolisthesis were merged into a single category
+#'    labelled as 'abnormal'. Thus, the second task consists in classifying
+#'    patients as belonging to one out of two categories: Normal (100 patients)
+#'     or Abnormal (210 patients). We provide files also for use within the
+#'     WEKA environment.
+#' \describe{
+#' Each patient is represented in the data set by six biomechanical attributes
+#' derived from the shape and orientation of the pelvis and lumbar spine
+#' (in this order): pelvic incidence, pelvic tilt, lumbar lordosis angle,
+#' sacral slope, pelvic radius and grade of spondylolisthesis.
+#' The following convention is used for the class labels: DH (Disk Hernia),
+#' Spondylolisthesis (SL), Normal (NO) and Abnormal (AB).
+#' }
+#' @source Barreto,Guilherme and Neto,Ajalmar. (2011). Vertebral Column.
+#' UCI Machine Learning Repository. https://doi.org/10.24432/C5K89B.
+#'
+#' @format A dataset with 310 observations and 7 features
+NULL
+
+
+#'
+#' @name wine
+#' @title wine
+#' @description
+#' Using chemical analysis determine the origin of wines
+#' @details
+#' These data are the results of a chemical analysis of wines grown in the same
+#'  region in Italy but derived from three different cultivars. The analysis
+#'  determined the quantities of 13 constituents found in each of the three
+#'  types of wines. I think that the initial data set had around 30 variables,
+#'  but for some reason I only have the 13 dimensional version.
+#'  I had a list of what the 30 or so variables were, but a.)
+#'  I lost it, and b.), I would not know which 13 variables are included in
+#'  the set.
+#' \describe{
+#' The attributes are (dontated by \code{Riccardo Leardi,
+#' riclea@anchem.unige.it}):
+#'
+#' \code{Alcohol; Malic acid; Ash; Alcalinity of ash; Magnesium; Total phenols;
+#'  Flavanoids; Nonflavanoid phenols; Proanthocyanins; Color intensity; Hue;
+#'  OD280/OD315 of diluted wines; Proline}
+#'  }
+#'
+#'  @source Aeberhard,Stefan and Forina,M.. (1991). Wine.
+#'  UCI Machine Learning Repository. https://doi.org/10.24432/C5PC7J.
+#'
+#' @format A dataset of 174 observations with 14 features
+
+NULL

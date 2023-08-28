@@ -14,6 +14,21 @@ plotComparison(
   which = "errors"
 )
 }
+\arguments{
+\item{res}{a list of egooptim objects}
+
+\item{n}{the upper cutoff}
+
+\item{maximize}{whether to plot accuracy or error}
+
+\item{m}{lower cutoff}
+
+\item{nsteps}{determines the breaks at the x axis}
+
+\item{errorbars}{logical. Whether to plot the errorbars}
+
+\item{which}{The element in the egoOptim object to be plotted}
+}
 \description{
 Uses EGO algorithm to optimize any given function.
 }

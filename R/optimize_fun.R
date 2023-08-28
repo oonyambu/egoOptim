@@ -180,10 +180,9 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
                  loss = c(loss_init, loss)),
             class = 'egoOptim')
 }
-#' print.egoOptim
-#' print an egoOptim object
-#' @param x an object of class egoOptim
-#'
+
+
+
 print.egoOptim <- function(x){
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
   cat("\t\t\t\tKriging Based RSO\n")
@@ -211,4 +210,4 @@ control_pars <- function(x, lower){
   if(!is.null(z$trueglobal)) z$counter <- z$maxit
   z
 }
-
+.S3method('print', 'egoOptim')
