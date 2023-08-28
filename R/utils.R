@@ -3,7 +3,8 @@
 #' @importFrom grDevices rainbow
 #' @importFrom graphics axis contour grid par points rect
 #' @importFrom stats sd setNames
-#' @importFrom utils getFromNamespace suppressForeignCheck stack tail type.convert write.csv
+#' @importFrom utils getFromNamespace suppressForeignCheck stack tail
+#' type.convert write.csv
 
 utils::suppressForeignCheck(c('Var1', 'error_init','nsteps', 'point'))
 requireNamespace("ggplot2")
@@ -56,10 +57,10 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
                                       do_maxit = TRUE,basicEGO = TRUE))
     cat("TREGO ITERATION:", i, "\n")
     res[['TREGO']][[i]] <- optimize_fun(fun, low, up,...,X = X1,y=y1,
-                                        trueglobal = optimal,
                                         maximize = maximize,
                                         budget = budget,
-                                        control = list(nsteps = nsteps,
+                                        control = list(trueglobal = optimal,
+                                                       nsteps = nsteps,
                                         do_maxit = TRUE,basicEGO = TRUE,
                                         method = 'TREGO'))
     if(expansion_rate>0){
@@ -80,7 +81,8 @@ method_compare <- function(fun,low, up, ..., budget = 50, p = NULL,
     y <- data.frame(t(apply(vals, 1,
                             \(y)c(mean = mean(y), sd = sd(y)))))
     y})
-  d <- transform(array2DF(structure(r, dim = 3)), point = nsteps*seq(0,nrow(r[[1]])-1))
+  d <- transform(array2DF(structure(r, dim = 3)),
+                 point = nsteps*seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
   if(!is.null(file)) write.csv(d, file = file)
   list(res=res, plot = plotComparison(d))
@@ -183,9 +185,10 @@ plotComparison <- function(res, n = NULL,
 #' @author BLANK
 #'
 #' @param x1,x2 locations of grid lines at which the values in z are measured.
-#'  These must be in ascending order. By default, equally spaced values from 0 to 1 are used.
-#'  If x is a list, its components x$x and x$y are used for x and y, respectively.
-#'  If the list has component z this is used for z.
+#'  These must be in ascending order. By default, equally spaced values
+#' from 0 to 1 are used. If x is a list, its components x$x and x$y are
+#' used for x and y, respectively. If the list has
+#' component z this is used for z.
 #'
 #' @param Z a matrix containing the values to be plotted
 #' (NAs are allowed). Note that x can be used instead of z
