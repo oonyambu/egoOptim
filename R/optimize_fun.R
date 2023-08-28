@@ -199,7 +199,7 @@ control_pars <- function(x, lower){
   nms <- names(x)
   if(any(!nzchar(nms)))stop("arguments in control list must be named")
 
-  y <- list(nsteps = 5, cost = NULL, trueglobal = NULL,
+  y <- list(nsteps = 3, cost = NULL, trueglobal = NULL,
             maxit = 20, tol = 1e-4, do_maxit = FALSE, counter = 3,
             plot = FALSE, dimplot = 1:2, basicEGO = FALSE,
             method = c('fastEGO','TREGO'), n = 5*length(lower),
