@@ -51,7 +51,7 @@ method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
   if(maximize & is.null(optimal)) optimal <- -1
   control$trueglobal <- optimal
   res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
-  contol$do_maxit <- TRUE
+  control$do_maxit <- TRUE
   RScontrol <- modifyList(control, list(basicEGO = FALSE))
   EGcontrol <- modifyList(control, list(basicEGO = TRUE))
   TRcontrol <- modifyList(control, list(basicEGO = TRUE, method = 'TREGO'))
