@@ -9,7 +9,7 @@
 utils::suppressForeignCheck(c('Var1', 'error_init','nsteps', 'point'))
 requireNamespace("ggplot2")
 
-#'
+#' Function to compare different methods
 #'
 #' @author BLANK
 #'
@@ -26,14 +26,17 @@ requireNamespace("ggplot2")
 #' @param reps Integer, number of replicates/trials.
 #' @param file. a character string specifying where the results will be stored
 #' in the harddrive.
+#' @param control a list of control parameters passed to the optimize_fun.
+#'  See ‘optimized_fun’ for more information.
 #' @export
 #'
 method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
                            maximize = FALSE, reps = 20L,
-                           nsteps = 5, expansion_rate= 0, file = NULL){
+                           expansion_rate= 0, file = NULL,
+                           control = list()){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
-  optimal <- NULL
+  optimal <- control$trueglobal
   if(missing(lower)){
     dom <- domain(fun)
     fun <- getFromNamespace(fun, 'egoOptim')
@@ -41,51 +44,44 @@ method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
       if(is.null(p)) stop('the dimension `p` must be provided for ', fun_name)
       else dom <- dom(p)
     }
-    optimal <- dom$opt$f
-    if(is.matrix(optimal)) optimal <- optimal[1,]
+    if(is.null(optimal)) optimal <- dom$opt$f[1]
     lower <- if(!is.null(dom$lower))dom$lower else rep(0, p)
     upper <- if(!is.null(dom$upper))dom$upper else rep(1, p)
   }
   if(maximize & is.null(optimal)) optimal <- -1
+  control$trueglobal <- optimal
   res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
+  contol$do_maxit <- TRUE
+  RScontrol <- modifyList(control, list(basicEGO = FALSE))
+  EGcontrol <- modifyList(control, list(basicEGO = TRUE))
+  TRcontrol <- modifyList(control, list(basicEGO = TRUE, method = 'TREGO'))
+
   for(i in seq_len(reps)){
     X <- lhs::maximinLHS(5*length(lower), length(lower))
     X1 <- mapply(rescale, data.frame(X),data.frame(rbind(lower, upper)))
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
-    res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,...,
-                                      expansion_rate = 0,
-                                      X = X1,y=y1,
+    res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       budget = budget,
                                       maximize = maximize,
-                                      control = list(trueglobal = optimal,
-                                      nsteps = nsteps,
-                                      do_maxit = TRUE,basicEGO = FALSE))
+                                      control = RScontrol)
     cat("EGO ITERATION:", i, "\n")
     res[['EGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       budget = budget,
                                       maximize = maximize,
-                                      control = list(nsteps = nsteps,
-                                      trueglobal = optimal,
-                                      do_maxit = TRUE,basicEGO = TRUE))
+                                      control = EGcontrol)
     cat("TREGO ITERATION:", i, "\n")
-    res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,...,X = X1,y=y1,
+    res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                         maximize = maximize,
                                         budget = budget,
-                                        control = list(trueglobal = optimal,
-                                                       nsteps = nsteps,
-                                        do_maxit = TRUE,basicEGO = TRUE,
-                                        method = 'TREGO'))
+                                        control = TRcontrol)
     if(expansion_rate>0){
       cat("RSO",expansion_rate, "ITERATION: ", i, "\n", sep="")
-      res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,...,X = X1,y=y1,
+      res[['RSO1']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                           expansion_rate = expansion_rate,
                                           maximize = maximize,
                                           budget = budget,
-                                          control = list(trueglobal = optimal,
-                                          nsteps = nsteps,
-                                          do_maxit = TRUE,basicEGO = TRUE,
-                                          method = 'TREGO'))
+                                          control = RScontrol)
     }
   }
   r <- lapply(res, \(x){

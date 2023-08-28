@@ -35,7 +35,7 @@ region of interest determination}
 
 \item{maximize}{logical. Should we maximize or minimize (the default)?}
 
-\item{budget}{description}
+\item{budget}{The total number of function evaluations to be carried out}
 
 \item{expansion_rate}{double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
 the initial function domain.}

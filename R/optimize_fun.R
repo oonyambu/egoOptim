@@ -64,8 +64,10 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
 
   if(!is.null(budget)) {
     add <- budget - ctr$n
+    if(add<=0) stop('budget must be at least ', budget - add)
     ctr$n <- ctr$n + add %% ctr$nsteps
     ctr$maxit <- add %/% ctr$nsteps
+    if(ctr$maxit<=0) stop('budget must be at least ', budget - add + ctr$nsteps)
     ctr$do_maxit <- TRUE
   }
   errors <- numeric(ctr$maxit)

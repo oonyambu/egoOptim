@@ -21,9 +21,10 @@ my_contour(
 }
 \arguments{
 \item{x1, x2}{locations of grid lines at which the values in z are measured.
-These must be in ascending order. By default, equally spaced values from 0 to 1 are used.
-If x is a list, its components x$x and x$y are used for x and y, respectively.
-If the list has component z this is used for z.}
+ These must be in ascending order. By default, equally spaced values
+from 0 to 1 are used. If x is a list, its components x$x and x$y are
+used for x and y, respectively. If the list has
+component z this is used for z.}
 
 \item{Z}{a matrix containing the values to be plotted
 (NAs are allowed). Note that x can be used instead of z
