@@ -33,7 +33,7 @@ requireNamespace("ggplot2")
 method_compare <- function(fun,lower, upper, ..., budget = 50, p = NULL,
                            maximize = FALSE, reps = 20L,
                            expansion_rate= 0, file = NULL,
-                           control = list()){
+                           control = list(nsteps = 3)){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
   optimal <- control$trueglobal
