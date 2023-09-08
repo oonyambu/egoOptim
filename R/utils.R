@@ -68,11 +68,11 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
     res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                         maximize = maximize,
                                         control = TRcontrol)
-    if(RScontrol$expansion_rate>0){
+    if(!is.null(control$expansion_rate) &&
+       control$expansion_rate>0){
 
-      cat("RSO",expansion_rate, "ITERATION: ", i, "\n", sep="")
+      cat("RSO",control$expansion_rate, "ITERATION: ", i, "\n", sep="")
       res[['RSO1']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
-                                          expansion_rate = expansion_rate,
                                           maximize = maximize,
                                           control = RScontrol)
     }
@@ -293,5 +293,26 @@ add_replicates <- function(object, reps){
 
 # .S3method('add_budget', 'egoOptim')
 # .S3method('add_budget', 'list')
+
+
+#' Used to compute the means and medians of the resulting egoOptim replications
+#' @param object list of list of egoObjects
+#' @param ... extra arguments such as the FUN to be evaluated.
+#' @export
+egoApply <- function(object, ...){
+  UseMethod('egoApply')
+}
+
+#' @export
+egoApply.egoOptim <- function(object, tol=1e-3){
+  v <- object$errors < tol
+  if(any(v)) which(v)[1] * object$env$ctr$nsteps
+  else object$env$model@n
+}
+
+#' @export
+egoApply.list <- function(object, FUN, tol=1e-3){
+  sapply(object, \(x)FUN(sapply(x, egoApply, tol)))
+}
 
 
