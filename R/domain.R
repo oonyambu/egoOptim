@@ -119,6 +119,8 @@ domain <- function(fun_name = NULL){
   forretal08 = list(loser = 0, upper = 1),
   goldpr = list(lower = c(-2,-2), upper = c(2,2),
                 opt = list(x = c(0, -1), f = 3)),
+  goldprsc = list(lower = c(0,0), upper = c(1,1),
+                opt = list(x=c(0.5,0.25), f= -3.129126)),
   hart3 = list(lower = numeric(3), upper =rep(1, 3),
                opt = list(x = c(0.114614, 0.555649, 0.852547),
                           f = -3.86278)),

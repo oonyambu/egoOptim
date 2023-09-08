@@ -15,7 +15,7 @@ method_compare(
   reps = 20L,
   expansion_rate = 0,
   file = NULL,
-  control = list(nsteps = 3)
+  control = list()
 )
 }
 \arguments{

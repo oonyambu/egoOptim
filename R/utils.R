@@ -50,7 +50,7 @@ method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
   }
   if(maximize & is.null(optimal)) optimal <- -1
   control$trueglobal <- optimal
-  res <- setNames(vector('list', 3), c('RSO', 'EGO', 'TREGO'))
+  res <- setNames(vector('list',3), c('RSO', 'EGO', 'TREGO'))
   control$do_maxit <- TRUE
   RScontrol <- modifyList(control, list(basicEGO = FALSE))
   EGcontrol <- modifyList(control, list(basicEGO = TRUE))
@@ -90,7 +90,7 @@ method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
     y <- data.frame(t(apply(vals, 1,
                             \(y)c(mean = mean(y), sd = sd(y)))))
     y})
-  d <- transform(array2DF(structure(r, dim = 3)),
+  d <- transform(array2DF(structure(r, dim = length(r))),
                  point = res$RSO[[1]]$env$ctr$nsteps *
                    seq(0,nrow(r[[1]])-1))
   assign(fun_name, d)
