@@ -9,11 +9,9 @@ method_compare(
   lower,
   upper,
   ...,
-  budget = 70,
   p = NULL,
   maximize = FALSE,
   reps = 20L,
-  expansion_rate = 0,
   file = NULL,
   control = list()
 )
@@ -27,17 +25,11 @@ method_compare(
 
 \item{...}{additional arguments to be passed to fun}
 
-\item{budget}{The total number of function evaluations to be carried out}
-
 \item{p}{Integer. The dimension of the function in case lower is not given.}
 
 \item{maximize}{logical. Should we maximize or minimize (the default)?}
 
 \item{reps}{Integer, number of replicates/trials.}
-
-\item{expansion_rate}{double [0,1]. For the ROI expansion in case of a
-failed iteration. 0 implies reverting back to
-the initial function domain.}
 
 \item{file}{a character string specifying where the results will be stored
 in the hard drive.}

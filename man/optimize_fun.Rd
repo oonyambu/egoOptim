@@ -13,8 +13,6 @@ optimize_fun(
   y = NULL,
   rho = 0.3,
   maximize = FALSE,
-  budget = NULL,
-  expansion_rate = 0,
   control = list()
 )
 }
@@ -35,11 +33,6 @@ region of interest determination}
 
 \item{maximize}{logical. Should we maximize or minimize (the default)?}
 
-\item{budget}{The total number of function evaluations to be carried out}
-
-\item{expansion_rate}{double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
-the initial function domain.}
-
 \item{control}{a list of control parameters. See ‘Details’.}
 }
 \description{
@@ -49,21 +42,24 @@ Uses EGO algorithm to optimize any given function.
 \describe{
  \item{\code{nsteps}}{A positive integer representing the
  desired number of additional points per iteration}
- \item{\code{cost}}{cost function to evaluate the loss}
- \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
  \item{\code{trueglobal}}{double. The true function optimum.}
+ \item{\code{expansion_rate}}{double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
+the initial function domain.}
  \item{\code{tol}}{double. the desired accuracy level.ie convergence tolerance.
  If reached before maxit, the code stops and the result returned}
- \item{\code{do_maxit}}{logical. Whether to iterate until maxit}
+ \item{\code{budget}}{The total number of function evaluations to be carried out}
+ \item{\code{maxit}}{Integer. maximum number of iterations to be carried out. Defaults to 20}
  \item{\code{counter}}{Integer. Number of times to switch to global search once local search is unsuccessful}
+ \item{\code{do_maxit}}{logical. Whether to iterate until maxit}
  \item{\code{plot}}{logical. Should the Region be ploted?}
  \item{\code{dimplot}}{an integer vector of length 2. The dimensions of the function to be plotted}
  \item{\code{basicEGO}}{logical. Whether to maintain the domain as given.
  TRUE denotes that the domain will not change throughout the optimization. This is the basic EGO algorithm}
  \item{\code{method}}{choise between \code{fastEGO} and \code{TREGO}}
- \item{\code{n}}{number of observations for the initial design.
+ \item{\code{n}}{number of observations for the initial design. defaults to 5*length(lower)
  Used if X is not provided. Defaults to \code{5*length(lower)}}
- \item{\code{maxit}}{Integer. maximum number of iterations to be carried out. Defaults to 20}
+ \item{\code{cost}}{cost function to evaluate the loss}
+ \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
  \item{\code{seed}}{Set a seed for reproducability}
 }
 }

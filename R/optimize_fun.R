@@ -18,37 +18,36 @@
 #' design is used to generate 5d points as X and y_i = fun(X_i)
 #' @param rho a double [0,1] to determine the ton n observations to be used for
 #' region of interest determination
-#' @param budget The total number of function evaluations to be carried out
 #' @param maximize logical. Should we maximize or minimize (the default)?
-#' @param expansion_rate double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
-#' the initial function domain.
 #' @param control a list of control parameters. See ‘Details’.
 #'
 #' @details
 #'  \describe{
 #'  \item{\code{nsteps}}{A positive integer representing the
 #'  desired number of additional points per iteration}
-#'  \item{\code{cost}}{cost function to evaluate the loss}
-#'  \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
 #'  \item{\code{trueglobal}}{double. The true function optimum.}
+#'  \item{\code{expansion_rate}}{double [0,1] for the ROI expansion in case of a failed iteration. 0 implies reverting back to
+#' the initial function domain.}
 #'  \item{\code{tol}}{double. the desired accuracy level.ie convergence tolerance.
 #'  If reached before maxit, the code stops and the result returned}
-#'  \item{\code{do_maxit}}{logical. Whether to iterate until maxit}
+#'  \item{\code{budget}}{The total number of function evaluations to be carried out}
+#'  \item{\code{maxit}}{Integer. maximum number of iterations to be carried out. Defaults to 20}
 #'  \item{\code{counter}}{Integer. Number of times to switch to global search once local search is unsuccessful}
+#'  \item{\code{do_maxit}}{logical. Whether to iterate until maxit}
 #'  \item{\code{plot}}{logical. Should the Region be ploted?}
 #'  \item{\code{dimplot}}{an integer vector of length 2. The dimensions of the function to be plotted}
 #'  \item{\code{basicEGO}}{logical. Whether to maintain the domain as given.
 #'  TRUE denotes that the domain will not change throughout the optimization. This is the basic EGO algorithm}
 #'  \item{\code{method}}{choise between \code{fastEGO} and \code{TREGO}}
-#'  \item{\code{n}}{number of observations for the initial design.
+#'  \item{\code{n}}{number of observations for the initial design. defaults to 5*length(lower)
 #'  Used if X is not provided. Defaults to \code{5*length(lower)}}
-#'  \item{\code{maxit}}{Integer. maximum number of iterations to be carried out. Defaults to 20}
+#'  \item{\code{cost}}{cost function to evaluate the loss}
+#'  \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
 #'  \item{\code{seed}}{Set a seed for reproducability}
 #' }
 #'
 optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
-                          maximize = FALSE, budget = NULL, expansion_rate = 0,
-                         control = list()){
+                          maximize = FALSE,control = list()){
   ctr <- control_pars(control,lower)
   # Rewrite the function in case of maximization:
   .fun <-  function(x) (-1)^(maximize)*fun(x, ...)
@@ -64,12 +63,12 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
   # Generate scaled X matrix and Y values
   p <- length(lower)
 
-  if(!is.null(budget)) {
-    add <- budget - ctr$n
-    if(add<=0) stop('budget must be at least ', budget - add)
+  if(!is.null(ctr$budget)) {
+    add <- ctr$budget - ctr$n
+    if(add<=0) stop('budget must be at least ', ctr$budget - add)
     ctr$n <- ctr$n + add %% ctr$nsteps
     ctr$maxit <- add %/% ctr$nsteps
-    if(ctr$maxit<=0) stop('budget must be at least ', budget - add + ctr$nsteps)
+    if(ctr$maxit<=0) stop('budget must be at least ', ctr$budget - add + ctr$nsteps)
     ctr$do_maxit <- TRUE
   }
   errors <- numeric(ctr$maxit)
@@ -134,9 +133,9 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
       upper <- c(pmin(center + dist, init_upper))
       if(err < ctr$tol) {
         count <- count + 1
-        if(expansion_rate > 0 ){
-          lower <- c(pmax(center - (1 + expansion_rate)^(1/p)*dist, init_lower))
-          upper <- c(pmin(center + (1 + expansion_rate)^(1/p)*dist, init_upper))
+        if(ctr$expansion_rate > 0 ){
+          lower <- c(pmax(center - (1 + ctr$expansion_rate)^(1/p)*dist, init_lower))
+          upper <- c(pmin(center + (1 + ctr$expansion_rate)^(1/p)*dist, init_upper))
         }
         else {
           lower <- init_lower
@@ -191,7 +190,7 @@ print.egoOptim <- function(x){
   cat(strrep("=", 73), "\n")
   cat(do.call(sprintf,c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$env$model@d),'r',", ")),
                         as.list(unname(x$env$center)))))
-  cat(sprintf("\tf(x*) = %.4f\t\t", x$env$optimal))
+  cat(sprintf("\tf(x*) = %.4f\t\t", (-1)^x$env$maxmimize*x$env$optimal))
   cat("Total Points:", x$env$model@n, "\n")
   cat(strrep("_", 73), "\n")
 }
@@ -202,11 +201,13 @@ control_pars <- function(x, lower){
   nms <- names(x)
   if(any(!nzchar(nms)))stop("arguments in control list must be named")
 
-  y <- list(nsteps = 3, cost = NULL, trueglobal = NULL,
-            maxit = 20, tol = 1e-4, do_maxit = FALSE, counter = 3,
+  y <- list(nsteps = 5, cost = NULL, trueglobal = NULL,
+            maxit = 20, tol = 1e-4, do_maxit = FALSE,
+            counter = 3, budget = NULL, expansion_rate = 0,
             plot = FALSE, dimplot = 1:2, basicEGO = FALSE,
             method = c('fastEGO','TREGO'), n = 5*length(lower),
             seed = NULL,  trace = TRUE)
+  if(!is.null(y$budget)) y$do_maxit <- TRUE
   if(any(z<-!nms%in%names(y)))
     stop("there is no ", toString(nms[z]),"in contol list")
   z <- modifyList(y, x)

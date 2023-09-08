@@ -17,12 +17,8 @@ requireNamespace("ggplot2")
 #' @param lower vector of lower bounds for the variables to be optimized over,
 #' @param upper vector of upper bounds for the variables to be optimized over,
 #' @param ... additional arguments to be passed to fun
-#' @param budget The total number of function evaluations to be carried out
 #' @param maximize logical. Should we maximize or minimize (the default)?
 #' @param p Integer. The dimension of the function in case lower is not given.
-#' @param expansion_rate double [0,1]. For the ROI expansion in case of a
-#' failed iteration. 0 implies reverting back to
-#' the initial function domain.
 #' @param reps Integer, number of replicates/trials.
 #' @param file a character string specifying where the results will be stored
 #' in the hard drive.
@@ -30,9 +26,8 @@ requireNamespace("ggplot2")
 #'  See ‘optimized_fun’ for more information.
 #' @export
 #'
-method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
-                           maximize = FALSE, reps = 20L,
-                           expansion_rate= 0, file = NULL,
+method_compare <- function(fun,lower, upper, ..., p = NULL,
+                           maximize = FALSE, reps = 20L, file = NULL,
                            control = list()){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
 
@@ -51,7 +46,7 @@ method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
   if(maximize & is.null(optimal)) optimal <- -1
   control$trueglobal <- optimal
   res <- setNames(vector('list',3), c('RSO', 'EGO', 'TREGO'))
-  control$do_maxit <- TRUE
+  if(is.null(control$budget)) control$budget <- 70
   RScontrol <- modifyList(control, list(basicEGO = FALSE))
   EGcontrol <- modifyList(control, list(basicEGO = TRUE))
   TRcontrol <- modifyList(control, list(basicEGO = TRUE, method = 'TREGO'))
@@ -62,25 +57,23 @@ method_compare <- function(fun,lower, upper, ..., budget = 70, p = NULL,
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
     cat("RSO ITERATION:", i, "\n")
     res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
-                                      budget = budget,
                                       maximize = maximize,
-                                      control = RScontrol)
+                                      control = modifyList(RScontrol,
+                                                  list(expansion_rate = 0)))
     cat("EGO ITERATION:", i, "\n")
     res[['EGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
-                                      budget = budget,
                                       maximize = maximize,
                                       control = EGcontrol)
     cat("TREGO ITERATION:", i, "\n")
     res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                         maximize = maximize,
-                                        budget = budget,
                                         control = TRcontrol)
-    if(expansion_rate>0){
+    if(RScontrol$expansion_rate>0){
+
       cat("RSO",expansion_rate, "ITERATION: ", i, "\n", sep="")
       res[['RSO1']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                           expansion_rate = expansion_rate,
                                           maximize = maximize,
-                                          budget = budget,
                                           control = RScontrol)
     }
   }
@@ -246,7 +239,7 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 add_budget <- function(object, its, new_budget){
   UseMethod('add_budget')
 }
-
+#' @export
 add_budget.egoOptim <- function(object, new_budget, its){
   if(!missing(its)) object$env$ctr$maxit <- its
   if(!missing(new_budget)) {
@@ -266,6 +259,7 @@ add_budget.egoOptim <- function(object, new_budget, its){
   results
 }
 
+#' @export
 add_budget.list <- function(object, its, new_budget){
   for(i in names(object$res)){
     for(j in seq_along(object$res[[i]])){
@@ -297,7 +291,7 @@ add_replicates <- function(object, reps){
        call=object$call)
 }
 
-.S3method('add_budget', 'egoOptim')
-.S3method('add_budget', 'list')
+# .S3method('add_budget', 'egoOptim')
+# .S3method('add_budget', 'list')
 
 
