@@ -33,7 +33,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
                            maximize = FALSE, reps = 20L, file = NULL,
                            control = list(), overwrite = FALSE){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
-  if(file.exists(file)){
+  if(!is.null(file) && file.exists(file)){
     if(overwrite) file.remove(file)
     else{
       "Select\n 1: Overwrite file\n 2: Append to file\n:"

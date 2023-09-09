@@ -1,3 +1,6 @@
+
+# D:\Programs\R\R-4.3.1\bin\x64\Rscript.exe
+
 library(egoOptim)
 
 ct <- list(budget = 100)
