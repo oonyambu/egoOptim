@@ -62,6 +62,17 @@ NULL
 NULL
 
 
+#'@name ESLmixture
+#' @docType data
+#' @title ESL mixture data:
+#' @description Data from essentiasls of statistical learning
+#' @usage data(ESLmixture)
+#' @details
+#' has the points in \code{X} matrix with the labels in \code{y} vector
+
+NULL
+
+
 #' @name glass
 #' @docType data
 #' @aliases glass

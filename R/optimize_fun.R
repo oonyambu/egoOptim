@@ -1,6 +1,4 @@
 
-# @importFrom lhs maximinLHS
-# @importFrom DiceOptim fastEGO.nsteps TREGO.nsteps
 
 
 #' Optimize fun
@@ -45,6 +43,8 @@
 #'  \item{\code{trace}}{logical. Tracing the information on the progress of the optimization}
 #'  \item{\code{seed}}{Set a seed for reproducability}
 #' }
+#'
+#' @example  R/Example/optimize_fun.R
 #'
 optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
                           maximize = FALSE,control = list()){
@@ -184,13 +184,14 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
 
 
 #' @export
+#' @method print egoOptim
 print.egoOptim <- function(x){
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
   cat("\t\t\t\tKriging Based RSO\n")
   cat(strrep("=", 73), "\n")
   cat(do.call(sprintf,c(sprintf("\tx*=[%s]", trimws(strrep("%.4f, ", x$env$model@d),'r',", ")),
                         as.list(unname(x$env$center)))))
-  cat(sprintf("\tf(x*) = %.4f\t\t", (-1)^x$env$maxmimize*x$env$optimal))
+  cat(sprintf("\tf(x*) = %.4f\t\t", (-1)^x$env$maximize*x$env$optimal))
   cat("Total Points:", x$env$model@n, "\n")
   cat(strrep("_", 73), "\n")
 }
