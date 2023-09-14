@@ -1,6 +1,10 @@
-#
- library(egoOptim)
-#
+if(!require('egoOptim')){
+    if(!require('remotes'))
+	install.packages(c('remotes', 'devtools'))
+    remotes::install_github('oonyambu/egoOptim')
+}
+library(egoOptim)
+
 # # FUNCTIONS
 #
 cat("==================Branin Function===========")
@@ -8,13 +12,13 @@ ex1 <- method_compare("branin", control = list(trueglobal = domain('branin')$opt
 
 
 cat("==================Gold Price Function===========")
-ex2 <- method_compare("goldprsc", control = list(trueglobal = domain('goldprsc')$opt$f))
+ex1 <- method_compare("goldprsc", control = list(trueglobal = domain('goldprsc')$opt$f))
 
 cat("==================Hartman3 Function===========")
-ex3 <- method_compare("hart3", control = list(trueglobal = domain('hart3')$opt$f))
+ex1 <- method_compare("hart3", control = list(trueglobal = domain('hart3')$opt$f))
 
 cat("==================Hartman4 Function===========")
-ex4 <- method_compare("hart4", control = list(trueglobal = domain('hart4')$opt$f))
+ex1 <- method_compare("hart4", control = list(trueglobal = domain('hart4')$opt$f))
 
 
 
