@@ -27,20 +27,27 @@ requireNamespace("ggplot2")
 #' @param control a list of control parameters passed to the optimize_fun.
 #'  See ‘optimized_fun’ for more information.
 #' @export
-#' @inherit optimize_fun details
+#' @inherit optimize_fun seealso
+#' @examples
+#' cat("==================Branin Function===========")
+#' ex1 <- method_compare("branin", control = list(trueglobal = domain('branin')$opt$f))
+#' ex1
+#'
+#'
+#'
 #'
 method_compare <- function(fun,lower, upper, ..., p = NULL,
                            maximize = FALSE, reps = 20L, file = NULL,
                            control = list(), overwrite = FALSE){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
+  time_file <- sub("\\.([^.]+$)", "_time.\\1", file)
   if(!is.null(file) && file.exists(file)){
-    if(overwrite) file.remove(file)
-    else{
-      "Select\n 1: Overwrite file\n 2: Append to file\n:"
-       file_option <- readline("\t")
-      if(file_option == 1) file.remove(file)
-       else cat(strrep("=", 80), "\n", file = file)
-      }
+    if(overwrite) {
+      file.remove(c(file, time_file))
+    }
+    else
+    cat(strrep("=", 80), "\n", file = file, append = TRUE)
+    cat(strrep("=", 80), "\n", file = time_file, append = TRUE)
   }
   optimal <- control$trueglobal
   if(missing(lower)){
@@ -58,18 +65,19 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
   control$trueglobal <- optimal
   res <- setNames(vector('list',3), c('RSO', 'EGO', 'TREGO'))
   errors_list <- res
-  if(is.null(control$budget)) control$budget <- 70
+  if(is.null(control$budget)) control$budget <- 50
   RScontrol <- modifyList(control, list(basicEGO = FALSE))
   EGcontrol <- modifyList(control, list(basicEGO = TRUE))
   TRcontrol <- modifyList(control, list(basicEGO = TRUE, method = 'TREGO'))
   time <- matrix(NA, nrow = reps, ncol = 4,
                  dimnames = list(NULL, c(names(res), "RSO1")))
-  time_file <- sub("\\.([^.]+$)", "_time.\\1", file)
   for(i in seq_len(reps)){
+
     X <- lhs::maximinLHS(5*length(lower), length(lower))
     X1 <- mapply(rescale, data.frame(X),data.frame(rbind(lower, upper)))
+    cat("Computing f(x)...")
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
-    cat("RSO ITERATION:", i, "\n")
+    cat("Done\n\nRSO ITERATION:", i, "\n")
     t1 <- proc.time()[['elapsed']]
     res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       maximize = maximize,
@@ -77,7 +85,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
                                                   list(expansion_rate = 0)))
     time[i, 'RSO'] <- proc.time()[['elapsed']] - t1
     if(!is.null(file)){
-      cat("RSO,", time[i, 'RSO'],"\n", file = time_file, append = TRUE)
+      cat("RSO", time[i, 'RSO'],"\n", file = time_file, append = TRUE)
       cat("RSO", i, res[['RSO']][[i]]$errors, "\n",file = file, append = TRUE)
     }
     cat("EGO ITERATION:", i, "\n")
@@ -87,7 +95,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
                                       control = EGcontrol)
     time[i, 'EGO'] <- proc.time()[['elapsed']] - t2
     if(!is.null(file)){
-      cat("EGO,", time[i, 'EGO'],"\n", file = time_file, append = TRUE)
+      cat("EGO", time[i, 'EGO'],"\n", file = time_file, append = TRUE)
       cat("EGO", i, res[['EGO']][[i]]$errors, "\n",file = file, append = TRUE)
     }
 
@@ -98,7 +106,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
                                         control = TRcontrol)
     time[i, 'TREGO'] <- proc.time()[['elapsed']] - t3
     if(!is.null(file)){
-      cat("TREGO,", time[i, 'TREGO'], "\n",file = time_file, append = TRUE)
+      cat("TREGO", time[i, 'TREGO'], "\n",file = time_file, append = TRUE)
       cat("TREGO", i, res[['TREGO']][[i]]$errors, "\n",file = file, append = TRUE)
     }
 
@@ -362,3 +370,16 @@ egoApply.list <- function(object, FUN, tol=1e-3){
 }
 
 
+# library(tidyverse)
+# fn <- function(path){
+#   {if(is.character(path))
+#   read.table(path, comment.char = "=")
+#   else path}%>%
+#     rename(Var1=V1)%>%
+#     pivot_longer(!(Var1:V2), names_to = 'point',values_drop_na =TRUE,
+#                  names_transform = ~ 5* (parse_number(.)-3)) %>%
+#     summarise(mean = mean(1-value), .by = c(Var1, point))|>
+#     plotComparison(errorbars = FALSE)
+# }
+#
+# fn("results/seeds.txt")

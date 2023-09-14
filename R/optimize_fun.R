@@ -86,8 +86,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     maximize + optimal - ctr$trueglobal*(!maximize)
   }else NULL
 
-  if(!is.function(ctr$cost)) ctr$cost <- .fun
-  loss_init <- ctr$cost(X[which.min(y),])
+  if(is.function(ctr$cost)) error_init <- ctr$cost(X[which.min(y),])
   # Run kriging model
   set.seed(ctr$seed)
   model <- DiceKriging::km(design = X, response = y, control = list(trace = 0))
@@ -109,7 +108,6 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     rect(lower[ctr$dimplot[1]], lower[ctr$dimplot[2]],
          upper[ctr$dimplot[1]], upper[ctr$dimplot[2]], border = 'black')
   }
-  loss <- NULL
   for(i in seq_len(ctr$maxit)){
 
     #Fit the EGO
@@ -124,7 +122,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     # Compute the error and set the previous optimal to be the current optimal
     err <- optimal - model@y[o[1]]
     optimal <- model@y[o[1]]
-    if(is.function(ctr$cost)) loss[i] <- ctr$cost(center)
+
 
     if(!ctr$basicEGO) {
       top_n <- ceiling(rho * nrow(model@X))
@@ -153,7 +151,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     }
     if(!is.null(ctr$trueglobal)) {
       trueERR <- optimal - ctr$trueglobal
-      errors[i] <- trueERR
+      errors[i] <- if(is.function(ctr$cost)) ctr$cost(center) else trueERR
     }
 
     if(ctr$trace){
@@ -163,7 +161,8 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
         fmt <- sprintf("[%s]\tcount:%02i\t", trimws(strrep("%.4f, ", p),'r',", "), count)
         cat(do.call(sprintf, c(fmt, as.list(center))))
       }
-      if(!is.null(ctr$trueglobal))cat(sprintf(sprintf("trueERR: %%.%df", signifs), trueERR))
+      trueERR_w <- if(is.function(ctr$cost)) "cost" else "trueERR"
+      if(!is.null(ctr$trueglobal))cat(sprintf(sprintf("%s: %%.%df", trueERR_w, signifs), errors[i]))
       cat("\n")
     }
 
@@ -177,8 +176,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
                  model = model,
                  call = match.call(expand.dots = TRUE),
                  env = environment(),
-                 errors = c(error_init, errors),
-                 loss = c(loss_init, loss)),
+                 errors = c(error_init, errors)),
             class = 'egoOptim')
 }
 
