@@ -149,8 +149,8 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
   r <- parallel::mclapply(res, \(x){
     vals <- sapply(x, getElement, 'errors')
     vals <- if(maximize) 1- vals else log10(vals)
-    data.frame(t(apply(vals, 1,
-                            \(y)c(mean = mean(y), sd = sd(y)))))
+    cat("here\n\n")
+    data.frame(t(apply(vals, 1, \(y)c(mean = mean(y), sd = sd(y)))))
     }, mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
 
   d <- transform(array2DF(structure(r, dim = length(r))),
