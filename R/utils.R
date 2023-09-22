@@ -43,6 +43,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
                            control = list(), overwrite = FALSE){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
   time_file <- sub("\\.([^.]+$)", "_time.\\1", file)
+  nsteps <- if(is.null(nsteps<-control$nsteps)) 5 else nsteps
   if(is.null(control$budget)) control$budget <- 50
   if(!is.null(file)){
     if(file.exists(file) && overwrite) {
@@ -50,7 +51,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
     }
     cat("\n",strrep("\n#", 80), "\n", sep="",file = time_file, append = TRUE)
     cat(strrep("#", 80),
-        "\n# nsteps: ", if(is.null(nsteps<-control$nsteps)) 5 else nsteps,
+        "\n# nsteps: ", nsteps,
         "\n# rho: ", rho,
         "\n# Lower Bound: (",toString(lower), ')',
         "\n# Upper Bound: (",toString(upper), ')',
@@ -142,16 +143,19 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
       }
     }
   },mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
-  #return(res)
+
+  len <- (control$budget - if(is.null(n<-control$n)) 10 else n)/nsteps
+
   r <- parallel::mclapply(res, \(x){
     vals <- sapply(x, getElement, 'errors')
     vals <- if(maximize) 1- vals else log10(vals)
     y <- data.frame(t(apply(vals, 1,
                             \(y)c(mean = mean(y), sd = sd(y)))))
     y}, mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
+
   d <- transform(array2DF(structure(r, dim = length(r))),
                  point = res$RSO[[1]]$env$ctr$nsteps *
-                   seq(0,nrow(r[[1]])-1))
+                   seq(0, len))
 
   times <- colSums(time)
   structure(list(res=res, plot = plotComparison(d,
