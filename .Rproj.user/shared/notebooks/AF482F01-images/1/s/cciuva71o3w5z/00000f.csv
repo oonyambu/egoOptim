@@ -1,4 +1,0 @@
-"0","a<-readLines(""results3/breastTissue_expansionAll.txt"")"
-"0","b <-split(a, cumsum(grepl(""#{30}"", a)))"
-"0","d <- lapply(b, gn,  c('TREGO', 'EGO', 'RSO')) ##3"
-"0","d[[3]]"
