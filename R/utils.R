@@ -82,7 +82,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
                  dimnames = list(NULL,
                           unique(c(names(res),paste0('RSO', control$expansion_rate)))))
   #for(i in seq_len(reps))
-    parallel::mclapply(seq_len(reps), \(i){
+    lapply(seq_len(reps), \(i){
 
     X <- lhs::maximinLHS(5*length(lower), length(lower))
     X1 <- mapply(rescale, data.frame(X),data.frame(rbind(lower, upper)))
@@ -142,7 +142,7 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
       }
       }
     }
-  },mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
+  })#,mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
 
   len <- (control$budget - if(is.null(n<-control$n)) 10 else n)/nsteps
   return(res)
