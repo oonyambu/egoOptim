@@ -1,0 +1,55 @@
+
+spherical <- function(h) 2*(3/2*h/7 - 0.5*(h/7)^3)
+X <- cbind(x = c(4.0,2,4.1,0.3,2),y = c(5.5,1.2,3.7,2,2.5))
+y = c(4.2, 6.1, 0.2, 0.7, 5.2)
+s0 = c(x=2.,y= 2.)
+
+
+
+dist_to_X <- spherical(sqrt(colSums((t(X) - s0)**2)))
+dist_between_X <- spherical(as.matrix(dist(X)))
+#m <- exp(-colSums(0.5*((t(X) - s0)/ps)^2))
+n <- rbind(1, cbind(1, dist_between_X))
+n[1,1] <- 0
+lambda <- solve(n, c(1, dist_to_X))
+y_hat <- weighted.mean(z, lambda[-1])
+s_d <- weighted.mean(c(1, dist_to_X), lambda)
+c(y_hat=y_hat, s_d=s_d)
+
+
+
+sg2 <- mean(z^2)
+err <- function(R, x, y){
+  R[,x] <- R[x,] <- 1
+  y[x] <- 1
+  weighted.mean(y[-x], solve(R,y)[-x])
+}
+
+tb %>%
+  pivot_longer(!V1:V2, names_to = 'point',values_transform = ~1-.x,
+               names_transform = ~(parse_number(.)-3)*5)%>%
+  rename(method=V1, runs = V2) |>
+  ggplot(aes(point, value, color = method)) +
+  geom_boxplot(aes(group = paste(method, point)))+
+  stat_summary(fun.y = mean, geom = "line", linewidth=1) + 
+  stat_summary(fun.y = median, geom = "line", linewidth=1,
+               linetype=2, alpha=0.5) 
+
+
+
+
+df %>%
+  separate_rows(sequence,sep = "")%>%
+  filter(nzchar(sequence)) |>
+  mutate(n = max(nchar(df$sequence)) - row_number(), .by = readname)
+  ggplot(aes(n, factor(readname, rev(unique(readname))), label=sequence, col=sequence))+
+  geom_text() +
+  scale_color_manual(values=c("red2", "green4", "yellow4", "blue"))
+
+1+1
+
+positionchr <- c(71526L,124659L, 144370L, 125121L)
+
+interactionregion<-structure(list(rf1 = c(40000L, 80000L, 120000L, 499336L, 459336L
+), rt1 = c(80000L, 120000L, 160000L, 501617L, 499336L)), row.names = c(NA,
+                                                                       5L), class = "data.frame")

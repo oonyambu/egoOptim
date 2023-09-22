@@ -9,9 +9,11 @@ Description: More about what it does (maybe more than one line)
 Depends:
     R (>= 4.3)
 Imports:
+    DiceOptim,
+    dplyr,
+    e1071,
     ggplot2,
-    lhs,
-    DiceOptim
+    lhs
 Suggests:
     DiceKriging,
     devtools,

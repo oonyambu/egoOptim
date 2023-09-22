@@ -1,0 +1,5 @@
+"0","a<-readLines(""results3/glass.txt"")"
+"0","b <-split(a, cumsum(grepl(""#{30}"", a)))"
+"0","d <- lapply(b, gn,  c('TREGO', 'EGO', 'RSO')) ##7"
+"0","d[[7]]"
+"0",""

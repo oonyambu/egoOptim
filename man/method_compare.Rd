@@ -10,6 +10,7 @@ method_compare(
   upper,
   ...,
   p = NULL,
+  rho = 0.3,
   maximize = FALSE,
   reps = 20L,
   file = NULL,
@@ -27,6 +28,9 @@ method_compare(
 \item{...}{additional arguments to be passed to fun}
 
 \item{p}{Integer. The dimension of the function in case lower is not given.}
+
+\item{rho}{a double [0,1] to determine the ton n observations to be used for
+region of interest determination}
 
 \item{maximize}{logical. Should we maximize or minimize (the default)?}
 

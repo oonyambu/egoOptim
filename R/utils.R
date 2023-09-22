@@ -21,6 +21,8 @@ requireNamespace("ggplot2")
 #' @param ... additional arguments to be passed to fun
 #' @param maximize logical. Should we maximize or minimize (the default)?
 #' @param p Integer. The dimension of the function in case lower is not given.
+#' @param rho a double [0,1] to determine the ton n observations to be used for
+#' region of interest determination
 #' @param reps Integer, number of replicates/trials.
 #' @param file a character string specifying where the results will be stored
 #' in the hard drive.
@@ -36,18 +38,24 @@ requireNamespace("ggplot2")
 #'
 #'
 #'
-method_compare <- function(fun,lower, upper, ..., p = NULL,
+method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
                            maximize = FALSE, reps = 20L, file = NULL,
                            control = list(), overwrite = FALSE){
   fun_name <- gsub("\\W", '', deparse1(substitute(fun)))
   time_file <- sub("\\.([^.]+$)", "_time.\\1", file)
-  if(!is.null(file) && file.exists(file)){
-    if(overwrite) {
+  if(is.null(control$budget)) control$budget <- 50
+  if(!is.null(file)){
+    if(file.exists(file) && overwrite) {
       file.remove(c(file, time_file))
     }
-    else
-    cat(strrep("=", 80), "\n", file = file, append = TRUE)
-    cat(strrep("=", 80), "\n", file = time_file, append = TRUE)
+    cat("\n",strrep("\n#", 80), "\n", sep="",file = time_file, append = TRUE)
+    cat(strrep("#", 80),
+        "\n# nsteps: ", if(is.null(nsteps<-control$nsteps)) 5 else nsteps,
+        "\n# rho: ", rho,
+        "\n# Lower Bound: (",toString(lower), ')',
+        "\n# Upper Bound: (",toString(upper), ')',
+        "\n# Budget: ", control$budget,"\n",
+        file = file, append = TRUE, sep="")
   }
   optimal <- control$trueglobal
   if(missing(lower)){
@@ -65,35 +73,39 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
   control$trueglobal <- optimal
   res <- setNames(vector('list',3), c('RSO', 'EGO', 'TREGO'))
   errors_list <- res
-  if(is.null(control$budget)) control$budget <- 50
   RScontrol <- modifyList(control, list(basicEGO = FALSE))
   EGcontrol <- modifyList(control, list(basicEGO = TRUE))
+
   TRcontrol <- modifyList(control, list(basicEGO = TRUE, method = 'TREGO'))
-  time <- matrix(NA, nrow = reps, ncol = 4,
-                 dimnames = list(NULL, c(names(res), "RSO1")))
-  for(i in seq_len(reps)){
+  time <- matrix(NA, nrow = reps, ncol = 3+length(control$expansion_rate),
+                 dimnames = list(NULL,
+                          unique(c(names(res),paste0('RSO', control$expansion_rate)))))
+  #for(i in seq_len(reps))
+    parallel::mclapply(seq_len(reps), \(i){
 
     X <- lhs::maximinLHS(5*length(lower), length(lower))
     X1 <- mapply(rescale, data.frame(X),data.frame(rbind(lower, upper)))
-    cat("Computing f(x)...")
+    cat("\n\nComputing f(x)...")
     y1 <- apply(X1, 1, function(x) (-1)^(maximize)*fun(x, ...))
-    cat("Done\n\nRSO ITERATION:", i, "\n")
+    cat("Done\nRSO ITERATION:", i, "\n")
     t1 <- proc.time()[['elapsed']]
-    res[['RSO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
+    res[['RSO']][[i]] <<- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       maximize = maximize,
+                                      rho = rho,
                                       control = modifyList(RScontrol,
                                                   list(expansion_rate = 0)))
-    time[i, 'RSO'] <- proc.time()[['elapsed']] - t1
+    time[i, 'RSO'] <<- proc.time()[['elapsed']] - t1
     if(!is.null(file)){
       cat("RSO", time[i, 'RSO'],"\n", file = time_file, append = TRUE)
       cat("RSO", i, res[['RSO']][[i]]$errors, "\n",file = file, append = TRUE)
     }
     cat("EGO ITERATION:", i, "\n")
     t2 <- proc.time()[['elapsed']]
-    res[['EGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
+    res[['EGO']][[i]] <<- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                       maximize = maximize,
+                                      rho = rho,
                                       control = EGcontrol)
-    time[i, 'EGO'] <- proc.time()[['elapsed']] - t2
+    time[i, 'EGO'] <<- proc.time()[['elapsed']] - t2
     if(!is.null(file)){
       cat("EGO", time[i, 'EGO'],"\n", file = time_file, append = TRUE)
       cat("EGO", i, res[['EGO']][[i]]$errors, "\n",file = file, append = TRUE)
@@ -101,10 +113,11 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
 
     cat("TREGO ITERATION:", i, "\n")
     t3 <- proc.time()[['elapsed']]
-    res[['TREGO']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
+    res[['TREGO']][[i]] <<- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
                                         maximize = maximize,
+                                        rho = rho,
                                         control = TRcontrol)
-    time[i, 'TREGO'] <- proc.time()[['elapsed']] - t3
+    time[i, 'TREGO'] <<- proc.time()[['elapsed']] - t3
     if(!is.null(file)){
       cat("TREGO", time[i, 'TREGO'], "\n",file = time_file, append = TRUE)
       cat("TREGO", i, res[['TREGO']][[i]]$errors, "\n",file = file, append = TRUE)
@@ -112,20 +125,24 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
 
 
     if(!is.null(control$expansion_rate) &&
-       control$expansion_rate>0){
-
-      cat("RSO",control$expansion_rate, "ITERATION: ", i, "\n", sep="")
-      t4 <- proc.time()[['elapsed']]
-      res[['RSO1']][[i]] <- optimize_fun(fun, lower, upper,..., X = X1, y=y1,
-                                          maximize = maximize,
-                                          control = RScontrol)
-      time[i, 'RSO1'] <- proc.time()[['elapsed']] - t4
+       any(control$expansion_rate>0)){
+      for(j in control$expansion_rate){
+        nms <- paste0('RSO', j)
+        cat(nms, "ITERATION: ", i, "\n", sep="")
+        t4 <- proc.time()[['elapsed']]
+        res[[nms]][[i]] <<- optimize_fun(fun,lower, upper,..., X = X1, y=y1,
+                                        maximize = maximize, rho = rho,
+                            control = modifyList(RScontrol,
+                                                 list(expansion_rate = j)))
+      time[i, nms] <<- proc.time()[['elapsed']] - t4
       if(!is.null(file)){
-        cat("RSO1,", time[i, 'RSO1'], "\n",file = time_file, append = TRUE)
-        cat("RSO1", i, res[['RSO1']][[i]]$errors,"\n", file = file, append = TRUE)
+        cat(nms, time[i, nms], "\n",file = time_file, append = TRUE)
+        cat(nms, i, res[[nms]][[i]]$errors,"\n", file = file, append = TRUE)
+      }
       }
     }
-  }
+  },mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
+  #return(res)
   r <- lapply(res, \(x){
     vals <- sapply(x, getElement, 'errors')
     vals <- if(maximize) 1- vals else log10(vals)
@@ -137,12 +154,29 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,
                    seq(0,nrow(r[[1]])-1))
 
   times <- colSums(time)
-  list(res=res, plot = plotComparison(d,
+  structure(list(res=res, plot = plotComparison(d,
                           maximize = maximize,
                           nsteps = control$nsteps,
                           errorbars = !maximize),
-       times = times[!is.na(times)])
+       times = times[!is.na(times)]),
+       class = "egoOptimList")
 }
+
+#' @export
+print.egoOptimList <- function(x){
+  cat("\tnsteps:", x[[c(1,1,1)]]$env$ctr$nsteps,
+      "rho:", x[[c(1,1,1)]]$env$rho,
+      "initial n:", x[[c(1,1,1)]]$env$X|>nrow(),
+      "\n\n")
+  cat("    Time Taken (Seconds) for ")
+  cat(length(x$res[[1]]), "Replicates\n")
+  cat("    EGO:",x$times['EGO'],
+      "TREGO:",x$times['TREGO'],"RSO:",x$times['RSO'],"\n")
+
+  print(x$plot)
+  invisible(x)
+}
+
 
 rescale <- function(x, to){
   (x - min(x))/diff(range(x))*diff(to) + to[1]
@@ -289,8 +323,8 @@ my_contour <- function(x1, x2, Z, xlab = NULL,
 add_budget <- function(object, its, new_budget){
   UseMethod('add_budget')
 }
+
 #' @export
-#' @method add_budget egoOptim
 add_budget.egoOptim <- function(object, new_budget, its){
   if(!missing(its)) object$env$ctr$maxit <- its
   if(!missing(new_budget)) {
@@ -311,7 +345,6 @@ add_budget.egoOptim <- function(object, new_budget, its){
 }
 
 #' @export
-#' @method add_budget list
 add_budget.list <- function(object, its, new_budget){
   for(i in names(object$res)){
     for(j in seq_along(object$res[[i]])){
