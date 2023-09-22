@@ -104,8 +104,7 @@ NULL
 #'	\item{4}{vehicle_windows_non_float_processed (none in this database)}
 #'	\item{5}{containers}
 #'	\item{6}{tableware}
-#'	\item{7}{headlamps}
-#' }}
+#'	\item{7}{headlamps}}}
 #' \item{\code{RI}}{refractive index}
 #' \item{\code{measurement}}{weight percent in corresponding oxide, as are
 #' attributes 4-10)}
