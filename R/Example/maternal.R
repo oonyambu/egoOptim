@@ -2,6 +2,7 @@
 if(!require(egoOptim)){
   if(!require(remotes)) install.packages('remotes')
   remotes::install_github('oonyambu/egoOptim')
+  rstudioapi::restartSession()
 }
 
 library(egoOptim)

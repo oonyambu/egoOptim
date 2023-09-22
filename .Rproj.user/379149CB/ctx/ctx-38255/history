@@ -1,0 +1,6 @@
+devtools::document()
+?glass
+source("D:/Work/Ego/final/egoOptim2/egoOptim/R/Example/maternal.R")
+remotes::install_github('oonyambu/egoOptim')
+remove.packages('egoOptim')
+remotes::install_github('oonyambu/egoOptim')

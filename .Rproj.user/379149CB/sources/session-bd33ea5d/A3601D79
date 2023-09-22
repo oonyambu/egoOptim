@@ -1,26 +1,26 @@
 {
-    "id": "7272C969",
-    "path": "D:/Work/Ego/final/egoOptim2/egoOptim/R/Example/method_compare.R",
-    "project_path": "R/Example/method_compare.R",
+    "id": "A3601D79",
+    "path": "D:/Work/Ego/final/egoOptim2/egoOptim/R/utils.R",
+    "project_path": "R/utils.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "3477573651",
     "contents": "",
     "dirty": false,
-    "created": 1695345905207.0,
+    "created": 1695347704427.0,
     "source_on_save": false,
     "relative_order": 3,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "26,41",
-        "scrollLine": "10"
+        "cursorPosition": "150,83",
+        "scrollLine": "138"
     },
     "folds": "",
-    "lastKnownWriteTime": 1695346058,
+    "lastKnownWriteTime": 1695347814,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1695346058988,
+    "last_content_update": 1695347814397,
     "read_only": false,
     "read_only_alternatives": []
 }
