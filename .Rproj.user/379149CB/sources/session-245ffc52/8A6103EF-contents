@@ -209,7 +209,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     #cat("lower:[", lower,"] upper:[", upper,"]\n")
 
   }
-  end_time <- proc.time()['elapsed']
+  time_taken <- proc.time()['elapsed'] - start_time
   structure(list(par = unname(center),
                  value = optimal * (-1)^(maximize),
                  model = model,

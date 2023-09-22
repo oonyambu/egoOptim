@@ -1,44 +1,70 @@
 
 library(egoOptim)
 library(parallel)
-dom <- domain('camel3')
-control <- list(trueglobal = dom$opt$f, n =10,budget=15,
-        kmcontrol = list(multistart = 10, nugget = 1e-7,
-                         scaling = TRUE,
-                         covtype = 'matern5_2'))
-bounds <- data.frame(t(data.frame(dom[1:2])))
-controlList <- list(EGO = c(control, basicEGO = TRUE,method = 'TREGO'),
-                    TREGO = c(control,basicEGO = TRUE, method = 'fastEGO'),
-                    RSO = control)
-
-lower <- dom$lower
-upper <- dom$upper
-
-ncores <- if(.Platform$OS.type=='windows') 1 else detectCores()
-cat("ncores:", ncores, "\n")
-
-f <- \(ctr,fun, X,y) optimize_fun(fun, lower, upper, X = X, y = y, control = ctr)$env
-errfun <- \(x)  rbind(x$EGO$error_init, sapply(x, getElement, "errors"))
-timefun <- \(x) sapply(x, getElement, 'end_time')
 
 
-run1 <- function(fun, dom, control){
-  X <- lhs::maximinLHS(control$n, length(dom$lower))
-  X <- mcmapply(scales::rescale, data.frame(X), bounds, mc.cores = ncores)
-  y <- apply(X, 1, fun)
-  Envs <- mclapply(controlList, f, fun, X,y, mc.cores = ncores)
-  results <- list(errors = errfun(Envs), time = timefun(Envs))
-  structure(results, class='egoOptimList', a=Envs)
+
+compare <- function(fun, lower, upper, ..., reps = 1,
+                    control = list(), maximize = FALSE, file = NULL){
+  if(missing(lower)) {
+    dom <- domain(deparse(substitute(fun)))
+    lower <- dom$lower
+    upper <- dom$upper
+    control$trueglobal <- dom$opt$f
+  }
+  if(is.null(control$n)) control$n <- 5 * length(lower)
+  if(is.null(control$budget)) control$budget <- 50
+
+  if(is.character(fun)) fun <- match.fun(fun)
+  controlList <- list(EGO = c(control, basicEGO = TRUE, method = 'TREGO'),
+                      TREGO = c(control, basicEGO = TRUE, method = 'fastEGO'),
+                      RSO = control)
+  bounds <- data.frame(rbind(lower, upper))
+
+  ncores <- if(.Platform$OS.type=='windows') 1 else detectCores()
+  .fun <- function(x) (-1)^maximize*fun(x, ...)
+  f <- \(ctr, X, y) optimize_fun(.fun, lower, upper, X = X,
+                                 y = y, control = ctr)$env
+
+  errfun <- \(x)  rbind(x$EGO$error_init, sapply(x, getElement, "errors"))
+  timefun <- \(x) sapply(x, getElement, 'end_time')
+
+
+  run1 <- function(i){
+    cat("\n\nITERATION", i,"\n")
+    X <- lhs::maximinLHS(control$n, length(dom$lower))
+    X <- mcmapply(scales::rescale, data.frame(X), bounds, mc.cores = ncores)
+    y <- apply(X, 1, fun)
+    Envs <- mclapply(controlList, f, X,y, mc.cores = ncores)
+    results <- list(errors = errfun(Envs), time = timefun(Envs))
+    if(!is.null(file)){
+      time_file <- sub("(.(?:txt|csv))?$", "_time\\1", file)
+      write.table(t(results$errors), file = file, append = TRUE,
+                  col.names = FALSE)
+      write.table(results$time, file = time_file,
+          append = TRUE, col.names = !file.exists(time_file))
+    }
+    #structure(results, class='egoOptimList', a=Envs)
+    results
+  }
+  results <- mclapply(seq.int(reps), run1, mc.cores = ncores)
+  #Reduce(\(x,y)Map("+", x, y), results)
+  results
 }
 
+control <- list(n =10, budget=50,
+                kmcontrol = list(multistart = 5, nugget = 1e-7,
+                                 scaling = TRUE,
+                                 covtype = 'matern5_2'))
 
-a <- run1(camel3, dom, control)
+a <- compare(camel3, reps = 2, file = 'results/camel3.txt')
 print(names(a))
+
 cat("\n\n------ errors ------\n")
 print(a$errors)
 
 cat("\n\n-----times-----\n")
 print(a$time)
 
-cat("\n\n-----Envs-----\n")
-print(ls(attr(a, 'a')$EGO))
+#reps <- 20
+#mclapply(1:B)
