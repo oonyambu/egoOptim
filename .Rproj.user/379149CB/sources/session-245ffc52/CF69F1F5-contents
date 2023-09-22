@@ -26,5 +26,5 @@ maternalHealth1 <- cbind(maternalHealth[1], scale(maternalHealth[-1]))
 
 method_compare(svm_train, low, up, train=maternalHealth1,
            reps = reps, rho = rho, maximize = TRUE,
-           control = control,    overwrite = FALSE,
+           control = control,    overwrite = trace,
            file = 'results/maternal_healthreps100.txt')

@@ -59,6 +59,7 @@
 #'
 optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
                           maximize = FALSE, control = list()){
+  start_time <- proc.time()['elapsed']
   ctr <- control_pars(control,lower)
   # Rewrite the function in case of maximization:
   .fun <-  function(x) (-1)^(maximize)*fun(x, ...)
@@ -139,6 +140,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     formalsList <- list(model = model, fun = .fun, nsteps = ctr$nsteps,
                        lower = lower, upper = upper,
                        n.cores = ncores, trace = FALSE)
+
     if(ctr$method[1] == 'TREGO') formalsList$kmcontrol <- kmcontrol
     oEGO <- do.call(method, formalsList)
     model <- oEGO$lastmodel
@@ -207,6 +209,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     #cat("lower:[", lower,"] upper:[", upper,"]\n")
 
   }
+  end_time <- proc.time()['elapsed']
   structure(list(par = unname(center),
                  value = optimal * (-1)^(maximize),
                  model = model,

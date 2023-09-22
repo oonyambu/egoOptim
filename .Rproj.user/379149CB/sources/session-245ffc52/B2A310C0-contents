@@ -145,7 +145,6 @@ method_compare <- function(fun,lower, upper, ..., p = NULL,rho = 0.3,
   },mc.cores = if(.Platform$OS.type=='windows') 1 else parallel::detectCores())
 
   len <- (control$budget - if(is.null(n<-control$n)) 10 else n)/nsteps
-  return(res)
   r <- parallel::mclapply(res, \(x){
     vals <- sapply(x, getElement, 'errors')
     vals <- if(maximize) 1- vals else log10(vals)
