@@ -45,8 +45,7 @@ Uses EGO algorithm to optimize any given function.
  desired number of additional points per iteration}
  \item{\code{trueglobal}}{double. The true function optimum.}
  \item{\code{expansion_rate}}{double [0,1] for the ROI expansion in case of
- a failed iteration. 0 implies reverting back to
-the initial function domain.}
+ a failed iteration}
  \item{\code{tol}}{double. the desired accuracy level.ie convergence
  tolerance. If reached before maxit, the code stops and the result returned}
  \item{\code{budget}}{The total number of function evaluations to be carried

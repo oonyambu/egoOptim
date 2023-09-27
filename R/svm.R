@@ -11,7 +11,7 @@ svm_accuracy <- function(par, train, test){
 
 svm_train <- function(par, train,kfolds = 10, cv = TRUE){
   trainX <- train[-1]
-  response <- train[,1]
+  response <- train[,1, drop = TRUE]
   if(cv){
   folds <- sample(rep(seq(kfolds), n<-nrow(train), length = n))
 

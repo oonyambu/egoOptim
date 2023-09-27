@@ -1,0 +1,170 @@
+library(data.table)
+
+##
+# YOU NEED TO COMMENT OUT LINES 9 AND 10, AND UNCCOMMENT LINES 7-8
+##
+
+#load("~/Desktop/apparelDynCov.rda")
+#load("~/Desktop/apparelTrans.rda")
+load("C:/Users/oonya/Downloads/apparelDynCov copy.rda")
+load("C:/Users/oonya/Downloads/apparelTrans copy.rda")
+
+DynCov <- data.table::copy(apparelDynCov)[, Cov.Date := as.Date(Cov.Date)]
+TransLog <- data.table::copy(apparelTrans)[, Date := as.Date(Date)]
+
+params <- c(r = 1, alpha = 1, a = 1, b = 1,
+            tau = 1.1, beta1 = 1, beta2 = 1, beta3 = 1)
+
+cbs_fun <- function(params,DynCov,TransLog){
+
+  # Hat to change the first line of code, as it was hard-coded
+  # Used left-join in case each person had different start dates in the
+  # DynCov database.
+  # Previous code:
+  #   TransLog[, .(Id, t= as.numeric(Date - DynCov[1,Cov.Date],'weeks'))][...]
+
+  TransLog[, t:=.SD[DynCov[, first(Cov.Date), Id], on = .(Id = Id),
+                   as.numeric(Date - V1,'weeks')]
+  # changed from using base functions head and tail to using
+  # first and last functions from data.table
+  # ie head(x, 1) is same as first(x)
+  # tail(x,1) is the same as last(x)
+  ][, .(t0 = first(t), tx = last(t),  x = .N - 1, t=.(ceiling(t))), by = Id                                                     # x = number of transactions, redefine t=ceil(t) (needed for further calc/matching TransLog to DynCov)
+  ][, tx_tau := floor(tx/params['tau']), Id                                                            # tx_tau = floor(tx_tau)
+  ][DynCov[, .(Id,
+       At = c(exp(crossprod(t(.SD[,-(1:2)]), params[-(1:5)]))),                                        # At=e^(beta1*cov1+beta2*cov2+...) for each week
+       t_1 = as.numeric(Cov.Date - Cov.Date[1], 'weeks'))                                              # t_1 week count in DynCov, used to match to t in TransLogg
+      ][ ,list(T = max(t_1), At = .(At),                                                                   # T period of observation, defined by last entry in DynCov, puts Ats into list
+           s_sum = .(cumsum(At)), t_1 = .(t_1)), Id]                                                   # cumulative sum of Ats by week
+      ,on = 'Id'
+  ][, j := floor(T/params['tau']) - tx_tau, Id                                                         # number of death opportunities between tx and T
+  ][, PIAt := prod(unlist(At)[match(unlist(t),unlist(t_1))][-1]), Id                                   # product of A(t)s at times of repeat purchase
+  ][, CT0 := s_sum[[1]][ceiling(t0)] + (t0%%1) * At[[1]][t0%/%1 + 2], Id                               # sum of A(t)s from 0 to t0 (time of initial purchase) TK!TT!KTK!!!is this hardcoaded?
+  ][, num := .(.((tx_tau + seq_len(j)) * params['tau'])), Id                                           # we will take c(num)for every death opportunity between tx and T
+  ][, m :=.(.(ceiling(num[[1]]))), Id                                                                  # ceil(num) for indexing
+  ][, Ct := .(.(unlist(s_sum)[m[[1]]] +                                                                # Covariate effect present through different possibilities of time alive
+                  (num[[1]] %% 1) * At[[1]][m[[1]] + 1])), Id
+  ][, CT := sum(unlist(At)), Id                                                                        # Covariate effect from t=0 to T
+  ][, common := log(PIAt)+lgamma(params['r'] + x)+ params['r']*log(params['alpha'])-lgamma(params['r'])-lbeta(params['a'],params['b'])
+  ][, live := (CT - CT0 + params['alpha'])^(-params['r']-x)* beta(params['a'],params['b']+floor(T/params['tau']))
+  ][, die := sum((Ct[[1]] - CT0 + params['alpha'])^(-params['r'] - x) *
+                   beta(params['a'] + 1, params['b'] + tx_tau + seq_len(j) - 1)),   Id
+  ][, LL := common+log(pmax(die + live, .Machine$double.xmin))
+  ][, P_alive := live/(live+die)
+  ][, c('t_1', 't', 'm', 'At', 'num','die','common','live','tx_tau') :=NULL][]
+
+}
+
+################ OPTIMIZE SUM(LLs) ###################
+
+#normal optimization of all params
+
+log_like <- function(params,DynCov,TransLog) {                                                       # Create log likelihood function to optimize
+  if(any(params[1:5]<=0)) return(NA)
+  cb  <- cbs_fun(params,DynCov,TransLog)
+   -sum(cb$LL)
+}
+
+LL_optim <- optim(params, log_like,params,DynCov,TransLog)
+params <- LL_optim$par
+
+#
+#
+# for(i in 1:4){
+#   cat('Iteration: ', i, "\n")
+#   mod <- optim(pars, log_like, control = list(maxit = 1000,trace=2))
+#   print(mod)
+#   pars <- mod$par
+# }
+
+
+
+# pars <-c(r = 0.149167307923539, alpha = 39.2160508428075, a = 0.410477132117188,
+#          b = 12.8874533764514, tau = 2.46428573030135, beta1 = 0.325399514839258,
+#          beta2 = 5.60328169737712, beta3 = 4.21140432668177)
+#
+# pars2 <- c(r = 27679.4712633427, alpha = 2458.43361686205, a = 1084.64403880639,
+#            b = 8776.29216497987, tau = 10622.5071471919, beta1 = -5.36263264514581,
+#            beta2 = 9.13266486755775, beta3 = 4.47857777010399)
+#
+#
+# pars <- setNames(runif(8,0,1), names(params))
+
+
+################################################
+######## EXPECTED TRANSACTIONS #################
+
+t_star <- 39
+
+train_dyncov <- DynCov[rowid(Id)<=t_star]
+test_dyncov <- DynCov[rowid(Id)>t_star]
+
+TransLog_train <- TransLog[Date <= train_dyncov[.N,Cov.Date]]
+TransLog_test <- TransLog[Date > train_dyncov[.N,Cov.Date]]
+
+
+x_star = TransLog_test[,.N, Id][TransLog[,first(Id),Id], on='Id',.(Id,x=fcoalesce(N,0L))]
+
+t_tau <- floor(t_star / params['tau'])
+
+
+
+
+test_dyncov[,.(Id,
+          At = c(exp(crossprod(t(.SD[,-(1:2)]), params[-(1:5)]))),
+          t_1 = t_tau + rowid(Id))
+][, list(At = .(At),
+         s_sum = .(cumsum(At)), t_1 = .(t_1)), Id]
+
+
+
+
+b<-DynCov[,.(Id,
+          At = c(exp(crossprod(t(.SD[,-(1:2)]), params[-(1:5)]))))
+][rowid(Id)>41 ,list(At = .(At),
+         s_sum = .(cumsum(At)), t_1 = .(t_1)), Id][]
+
+test_dyncov[,.(Id,
+              At = c(exp(crossprod(t(.SD[,-(1:2)]), params[-(1:5)]))),
+              j = rowid(Id),
+              t_tau = floor(t_star/params['tau']))
+      ][,num := floor(t_star/params['tau'] + j)*params['tau'] - t_star
+      ][, c('ceil', 's_sum') := .(ceiling(num), cumsum(At)), Id
+      ][, Cx := s_sum[ceil] + num %% -1 * At[ceil], Id
+      ][, Cx2:= fcoalesce(s_sum[ceil] + num %% -1 * At[ceil], s_sum[.N]), Id
+      ][, die:= Cx * beta(params['a'] +1, params['b'] + t_tau + j - 1)
+      ][]
+
+
+
+
+
+
+
+
+
+
+
+set.seed(1)
+At <- sample(10)
+num <- floor(t_star/params['tau'] +  seq_along(At)) * params['tau'] - t_star
+
+
+res <- c(0.7 * At[1],
+         At[1] + 0.8 * At[2],
+         At[[1]] + At[[2]] + 0.9*At[[3]],
+         At[[1]] + At[[2]] + At[[3]] + At[[4]],
+         At[[1]] + At[[2]] + At[[3]] + At[[4]] + At[[5]] + 0.1 * At[[6]],
+         sum(At[1:6]) + 0.2* At[7],
+         sum(At[1:7]) + 0.3* At[8],
+         sum(At[1:8]) + 0.4* At[9],
+         sum(At[1:9]) + 0.5* At[10],
+         sum(At[1:10]) + 0.6* At[11]
+         )
+res
+
+
+
+
+
+

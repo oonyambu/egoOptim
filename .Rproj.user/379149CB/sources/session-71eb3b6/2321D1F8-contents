@@ -1,0 +1,139 @@
+
+library(egoOptim)
+library(parallel)
+
+
+
+compare <- function(fun, lower, upper, ..., reps = 1,
+                    control = list(), maximize = FALSE,
+                    file = NULL, overwrite = FALSE){
+  if(missing(lower)) {
+    dom <- domain(deparse(substitute(fun)))
+    lower <- dom$lower
+    upper <- dom$upper
+    control$trueglobal <- dom$opt$f
+  }
+  control <- egoOptim:::control_pars(control, lower)
+  if(is.null(control$budget)) control$budget <- 50
+  if(is.character(fun)) fun <- match.fun(fun)
+
+  controlList <- list(TREGO = modifyList(control,
+                              list(basicEGO = TRUE, method = 'TREGO')),
+                      EGO = modifyList(control,
+                          list(basicEGO = TRUE, method = 'fastEGO')),
+                      RSO = modifyList(control,
+                            list(basicEGO = FALSE, method = 'fastEGO')))
+
+  bounds <- data.frame(rbind(lower, upper))
+  ncores <- if(.Platform$OS.type=='windows') 1 else detectCores()
+  f <- \(ctr, X) optimize_fun(fun, lower, upper, ..., X = X,
+                                 maximize = maximize, control = ctr)$env
+
+  errfun <- \(x)  rbind(x$EGO$error_init, sapply(x, getElement, "errors"))
+  timefun <- \(x) sapply(x, \(y)y$time_taken[[1]])
+  #return(controlList)
+  if(!is.null(file)){
+    time_file <- sub("(.(?:txt|csv))?$", "_time\\1", file)
+      if(file.exists(file) && overwrite) {
+        file.remove(c(file, time_file))
+      }
+      cat(strrep("#", 80), "\n",
+          paste(names(controlList), collapse = ' '),'\n',
+          sep="",
+          file = time_file, append = TRUE)
+
+      cat(strrep("#", 80),
+          "\n# nsteps: ", control$nsteps,
+          " rho: ", control$rho,
+          " Lower Bound: (",toString(lower), ')',
+          " Upper Bound: (",toString(upper), ')',
+          " Budget: ", control$budget,"\n",
+          strrep("#", 80), "\n",
+          file = file, append = TRUE, sep="")
+    }
+
+  run1 <- function(i){
+    cat("\n\nITERATION", i,"\n")
+    X <- lhs::maximinLHS(control$n, length(lower))
+    X <- mcmapply(scales::rescale, data.frame(X), bounds, mc.cores = ncores)
+    Envs <- mclapply(controlList, f, X, mc.cores = ncores)
+    results <- list(errors = errfun(Envs), time = timefun(Envs))
+    if(!is.null(file)){
+      write.table(cbind(it = i,t(results$errors)),
+                  file = file, append = TRUE,
+                  col.names = FALSE)
+     write.table(t(results$time), file = time_file,
+                  row.names = FALSE, append = TRUE,
+                  col.names = FALSE)
+    }
+    #structure(results, class='egoOptimList', a=Envs)
+    results
+  }
+  results <- mclapply(seq.int(reps), run1, mc.cores = ncores)
+  res <- Reduce(\(x,y)Map("+", x, y), results)
+  res$errors <- res$errors/reps
+  res
+}
+
+control <- list(n = 20, budget = 70, trueglobal = 1,
+                kmcontrol = list(multistart = 5,   covtype = 'matern5_2'))
+
+#
+# d <- compare(branin, reps = 10, control = control,
+#         file = 'results/branin_101.txt', overwrite = FALSE)
+#
+# cat("\n\n------ BRANIN errors ------\n")
+# print(a$errors)
+# cat("\n\n-----times-----\n")
+# print(a$time)
+#
+#
+# b <- compare(hart3, reps = 100, control = control,
+#              file = 'results/hart3_10.txt', overwrite = TRUE)
+# cat("\n\n------ HART3 errors ------\n")
+# print(b$errors)
+# cat("\n\n-----times-----\n")
+# print(b$time)
+
+low <- c(1e-4, 1)
+up <- c(1, 1e2)
+data(wine)
+d <- compare(svm_train, low, up, train = wine, reps = 10,
+             control = control,maximize = TRUE,
+             file = 'results/wine.txt', overwrite = TRUE)
+print(d)
+
+#
+#
+#
+# d <- compare(hart4, reps = 100, control = control,
+#              file = 'results/hart4_10.txt', overwrite = TRUE)
+# cat("\n\n------ HART4 errors ------\n")
+# print(d$errors)
+# cat("\n\n-----times-----\n")
+# print(d$time)
+#
+#
+# e <- compare(hart6, reps = 100, control = control,
+#              file = 'results/hart6_10.txt', overwrite = TRUE)
+# cat("\n\n------HART6 errors ------\n")
+# print(e$errors)
+# cat("\n\n-----times-----\n")
+# print(e$time)
+#
+#
+# f <- compare(goldprsc, reps = 100, control = control,
+#              file = 'results/goldprsc_10.txt', overwrite = TRUE)
+# cat("\n\n------ MODIFIED GOLD PRICE errors ------\n")
+# print(f$errors)
+# cat("\n\n-----times-----\n")
+# print(f$time)
+#
+# g <- compare(goldpr, reps = 100, control = control,
+#              file = 'results/goldpr_10.txt', overwrite = TRUE)
+# cat("\n\n------ GOLD PRICE errors ------\n")
+# print(g$errors)
+# cat("\n\n-----times-----\n")
+# print(g$time)
+#
+#

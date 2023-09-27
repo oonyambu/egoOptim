@@ -1,0 +1,13 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-09-26"
+---
+
+
+```{c}
+#include <R.h>
+#include <lapack.h>
+
+```
+

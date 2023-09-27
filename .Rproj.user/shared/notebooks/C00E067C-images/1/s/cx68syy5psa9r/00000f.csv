@@ -24,7 +24,7 @@
 "0","    summarise(mean = mean(1-value), .by = c(Var1, point))|>"
 "0","    egoOptim::plotComparison(errorbars = FALSE)"
 "0","}"
-"0","hn <- function(dat){"
+"0","hn <- function(dat, filters =NULL){"
 "0","  rename(dat, Var1=V1)%>%"
 "0","    {if(!is.null(filters))"
 "0","        filter(.,Var1 %in% filters)"

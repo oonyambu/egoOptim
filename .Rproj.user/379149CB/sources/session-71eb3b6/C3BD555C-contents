@@ -1,0 +1,62 @@
+svm_accuracy <- function(par, train, test){
+
+  mod <- svm(train[-1], train[[1]], kernel = 'radial',
+             gamma = par[1], cost = par[2])
+  Metrics::accuracy(test[[1]], predict(mod, test[-1]))
+}
+
+
+#' @importFrom e1071 svm
+#' @export
+
+svm_train <- function(par, train,kfolds = 10, cv = TRUE){
+  trainX <- train[-1]
+  response <- train[,1, drop = TRUE]
+  if(cv){
+  folds <- sample(rep(seq(kfolds), n<-nrow(train), length = n))
+
+  preds <- sapply(seq_len(kfolds), \(i){
+    obs <- svm(x = trainX[folds!=i,], y = response[folds != i ],
+               gamma = par[1], cost = par[2],   kernel = 'radial')
+    Metrics::accuracy(response[folds==i],
+                      predict(obs, trainX[folds==i,]))|>
+      mean()
+  })
+  mean(preds)
+  }
+  else{
+    mod <- svm(train[-1], train[[1]], kernel = 'radial',
+               gamma = par[1], cost = par[2])
+   Metrics::accuracy(train[[1]], predict(mod, trainX))
+  }
+}
+
+
+
+#----------------------------------------------------
+### SRORE DATA
+# my_read <- function(path){
+#   a<-paste0("class:", gsub("(\\d+:)", "\nX\\1", readLines(path)),
+#             collapse = "\n\n")
+#   read.dcf(textConnection(a), all = TRUE)|>
+#     type.convert(as.is = TRUE)|>
+#      dplyr::select(class, where(~length(table(.x))>1))|>
+#     transform(class = factor(class)) |>
+#      model.frame(class~., data = _)
+#
+# }
+# vehicle_test <- my_read("data/test.3")
+# vehicle_train <- my_read("data/train.3")
+# levels(vehicle_test$class) <- levels(vehicle_train$class)
+#
+# astroparticle_test <- my_read("data/test.1")
+# astroparticle_train <- my_read("data/train.1")
+# levels(astroparticle_test$class) <- levels(astroparticle_train$class)
+#
+# bioinformatics <- my_read("data/train.2")
+# usethis::use_data(bioinformatics,vehicle_test, vehicle_train, astroparticle_test, astroparticle_train)
+
+# # #-------------------------------------------------------------------
+# #
+
+

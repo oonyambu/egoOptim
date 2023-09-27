@@ -1,0 +1,3 @@
+"0","my_krige(model1@covariance@range.val, X, y, newX)"
+"2","Error: object 'model1' not found
+"

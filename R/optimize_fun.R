@@ -26,8 +26,7 @@
 #'  desired number of additional points per iteration}
 #'  \item{\code{trueglobal}}{double. The true function optimum.}
 #'  \item{\code{expansion_rate}}{double [0,1] for the ROI expansion in case of
-#'  a failed iteration. 0 implies reverting back to
-#' the initial function domain.}
+#'  a failed iteration}
 #'  \item{\code{tol}}{double. the desired accuracy level.ie convergence
 #'  tolerance. If reached before maxit, the code stops and the result returned}
 #'  \item{\code{budget}}{The total number of function evaluations to be carried
@@ -89,16 +88,15 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
   if(is.null(X)) {
     X <- lhs::maximinLHS(ctr$n, p)
     X <- mapply(rescale, data.frame(X), data.frame(rbind(lower, upper)))
-    y <- apply(X, 1, .fun) #
   }
+  if(is.null(y)) y <- apply(X, 1, .fun)
 
 
   # Starting Optimal value -- Enable to compute error.
-  optimal <- min(y)
+  optimal <- min(y) + 2*ctr$tol
   error_init <- if(!is.null(ctr$trueglobal)) {
-    maximize + optimal - ctr$trueglobal*(!maximize)
+    maximize + optimal - 2*ctr$tol - ctr$trueglobal*(!maximize)
   }else NULL
-
   if(is.function(ctr$cost)) error_init <- ctr$cost(X[which.min(y),])
   # Run kriging model
   set.seed(ctr$seed)
@@ -151,21 +149,30 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
 
     # Compute the error and set the previous optimal to be the current optimal
     err <- optimal - model@y[o[1]]
+    #print(err)
     optimal <- model@y[o[1]]
+
+    if(!is.null(ctr$trueglobal)) {
+      trueERR <- optimal - ctr$trueglobal
+      errors[i] <- if(is.function(ctr$cost)) ctr$cost(center) else trueERR
+    }
 
 
     if(!ctr$basicEGO) {
-      top_n <- ceiling(rho * nrow(model@X))
-      dist <- diff(apply( model@X[o[seq_len(top_n)], ], 2, range))/2
-      lower <- c(pmax(center - dist, init_lower))
-      upper <- c(pmin(center + dist, init_upper))
+      if(err>ctr$tol){
+        top_n <- ceiling(rho * nrow(model@X))
+        dist <- diff(apply( model@X[o[seq_len(top_n)], ], 2, range))/2
+        lower <- c(pmax(center - dist, init_lower))
+        upper <- c(pmin(center + dist, init_upper))
+      }
       if(err < ctr$tol) {
         count <- count + 1
-        if(ctr$expansion_rate > 0 ){
+        if(ctr$expansion_rate >= 0 ){
           lower <- c(pmax(center - (1 + ctr$expansion_rate)^(1/p)*dist,
                           init_lower))
           upper <- c(pmin(center + (1 + ctr$expansion_rate)^(1/p)*dist,
                           init_upper))
+          dist <- (upper - lower)/2
         }
         else {
           lower <- init_lower
@@ -180,10 +187,6 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
            upper[ctr$dimplot[1]], upper[ctr$dimplot[2]], border = use_colors[i])
       points(oEGO$par[,ctr$dimplot, drop = FALSE], col=use_colors[i], pch=16)
       Sys.sleep(1)
-    }
-    if(!is.null(ctr$trueglobal)) {
-      trueERR <- optimal - ctr$trueglobal
-      errors[i] <- if(is.function(ctr$cost)) ctr$cost(center) else trueERR
     }
 
     if(ctr$trace){
@@ -243,7 +246,7 @@ control_pars <- function(x, lower){
 
   y <- list(nsteps = 5, cost = NULL, trueglobal = NULL,
             maxit = 20, tol = 1e-4, do_maxit = FALSE,
-            counter = 3, budget = NULL, expansion_rate = 0,
+            counter = 3, budget = NULL, expansion_rate = -1,
             plot = FALSE, dimplot = 1:2, basicEGO = FALSE,
             method = c('fastEGO','TREGO'), n = 5*length(lower),
             seed = NULL,  trace = TRUE, kmcontrol = NULL)

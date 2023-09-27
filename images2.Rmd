@@ -1,0 +1,51 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE )
+library(tidyverse)
+```
+
+```{r,fig.cap="branin"}
+
+
+read.table("results/branin_101.txt")|>
+  subset(select=-V2) |>
+  aggregate(.~V1, mean)|>
+  tidyr::pivot_longer(!V1, 
+          names_transform = list(name=~5*(readr::parse_number(.x)-3)),
+          values_transform = log10)|>
+  ggplot(aes(name, value, col = V1)) + 
+  geom_line(linewidth=1) + 
+  scale_x_continuous(label=~.x+20)
+
+```
+
+
+```{r, fig.cap="hart3"}
+read.table("results/hart3_10.txt")|>
+  subset(select=-V2) |>
+
+  mutate(across(!V1, log10))|>
+    aggregate(.~V1, mean)|>
+  tidyr::pivot_longer(!V1, 
+          names_transform = list(name=~5*(readr::parse_number(.x)-3)))|>
+  ggplot(aes(name, value, col = V1)) + 
+  geom_line(linewidth=1) + 
+  scale_x_continuous(label=~.x+20)
+```
+
+```{r, fig.cap="branin with 10% dilation"}
+read.table("results/branin_10.txt")|>
+  subset(select=-V2) |>
+  aggregate(.~V1, mean)|>
+  tidyr::pivot_longer(!V1, 
+          names_transform = list(name=~5*(readr::parse_number(.x)-3)),
+          values_transform = log10)|>
+  ggplot(aes(name, value, col = V1)) + 
+  geom_line(linewidth=1) + 
+  scale_x_continuous(label=~.x+20)
+```
+
