@@ -154,6 +154,7 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
 
     if(!is.null(ctr$trueglobal)) {
       errors[i] <- (if(is.function(ctr$cost)) ctr$cost(center) else optimal) - ctr$trueglobal
+      trueErr <- errors[i]
     }
     else if (is.function(ctr$cost)){
       errors[i] <- ctr$cost(center)
