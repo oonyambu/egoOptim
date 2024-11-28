@@ -153,11 +153,14 @@ optimize_fun <- function(fun, lower, upper, ..., X = NULL, y = NULL, rho = 0.3,
     optimal <- model@y[o[1]]
 
     if(!is.null(ctr$trueglobal)) {
-      trueERR <- optimal - ctr$trueglobal
-      errors[i] <- if(is.function(ctr$cost)) ctr$cost(center) else trueERR
+      errors[i] <- (if(is.function(ctr$cost)) ctr$cost(center) else optimal) - ctr$trueglobal
     }
-
-
+    else if (is.function(ctr$cost)){
+      errors[i] <- ctr$cost(center)
+    }
+    else {
+      errors[i] <- model@y[o[1]]
+    }
     if(!ctr$basicEGO) {
       if(err>ctr$tol){
         top_n <- ceiling(rho * nrow(model@X))
